@@ -15,7 +15,7 @@ wss.on('headers',(headers)=>{
 
 // if anybody connects to the websicket server, it will send
 wss.on('connection', function connection(ws) {
-  ws.send('welcome to websocket server');
+  ws.send('welcome to websocket_demo server');
 
   // adding a listener
   ws.on('message', function incoming(data) {

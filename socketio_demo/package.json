@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/brlala/websocket_demo#readme",
   "dependencies": {
+    "socket.io": "^2.3.0",
     "ws": "^7.3.1"
   }
 }
