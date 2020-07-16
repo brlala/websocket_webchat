@@ -1,0 +1,22 @@
+{
+  "name": "websocket_demo",
+  "version": "1.0.0",
+  "description": "This is an introduction to websockets from client and server.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/brlala/websocket_demo.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/brlala/websocket_demo/issues"
+  },
+  "homepage": "https://github.com/brlala/websocket_demo#readme",
+  "dependencies": {
+    "ws": "^7.3.1"
+  }
+}
