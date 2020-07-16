@@ -1,13 +1,20 @@
+// bringing in http because we don't have express
 const http = require('http');
-const socketio = require('sock');
+// bringing in socket io as 3rd party
+const socketio = require('socket.io');
 
+// We make http server with node
 const server = http.createServer((req, res) => {
   res.end('You are connected');
 });
 
-const wss = new websocket.Server({server})
+const io = socketio(server);
 
-// check on even upon handshake
-wss.on('headers',(headers)=>{
-  console.log(headers)
-})
+io.on('connection', (socket) => {
+  socket.emit('welcome', 'welcome to websocket_demo server');
+  socket.on('message', function incoming(data) {
+    console.log(data);
+  });
+});
+
+server.listen(8000);
