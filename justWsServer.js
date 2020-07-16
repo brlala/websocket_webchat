@@ -9,13 +9,15 @@ const server = http.createServer((req, res) => {
 const wss = new websocket.Server({server})
 
 // check on even upon handshake
-wss.on('headers',(headers, req)=>{
+wss.on('headers',(headers)=>{
   console.log(headers)
 })
 
 // if anybody connects to the websicket server, it will send
 wss.on('connection', function connection(ws) {
   ws.send('welcome to websocket server');
+
+  // adding a listener
   ws.on('message', function incoming(data) {
     console.log(data);
   });
