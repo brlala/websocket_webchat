@@ -11,9 +11,6 @@ io.on('connection', (socket) => {
   socket.on('messageToServer', (dataFromClient) => {
     console.log(dataFromClient);
   });
-  socket.on('newMessageToServer', (msg) => {
-    io.emit('messageToClients', {text: msg.text});
-  });
 });
 
 io.of('/admin').on('connection', (socket) => {
