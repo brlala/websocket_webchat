@@ -1,19 +1,25 @@
 const express = require('express');
+
 const app = express();
 const socketio = require('socket.io');
 
-app.use(express.static(__dirname + '/public'));
-
+const namespaces = require('./data/namespaces');
+// console.log(namespaces)
+app.use(express.static(`${__dirname}/public`));
 const expressServer = app.listen(9000);
 const io = socketio(expressServer);
+
+// main namespace connection
 io.on('connection', (socket) => {
-  socket.emit('messageFromServer', {data: 'Welcome to the SocketIO Server'});
+  socket.emit('messageFromServer', { data: 'Welcome to the SocketIO Server' });
   socket.on('messageToServer', (dataFromClient) => {
     console.log(dataFromClient);
   });
 });
 
-io.of('/admin').on('connection', (socket) => {
-  console.log('Someone connected to the admin namespace!')
-    io.of('/admin').emit('welcome', "Welcome to the admin channel!");
+namespaces.forEach((namespace) => {
+  io.of(namespace.endpoint).on('connection', ((socket) => {
+    console.log(`${socket.id} has join ${namespace.endpoint}`);
+  }));
+  // console.log(namespace)
 });
