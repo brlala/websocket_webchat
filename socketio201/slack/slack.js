@@ -11,15 +11,21 @@ const io = socketio(expressServer);
 
 // main namespace connection
 io.on('connection', (socket) => {
-  socket.emit('messageFromServer', { data: 'Welcome to the SocketIO Server' });
-  socket.on('messageToServer', (dataFromClient) => {
-    console.log(dataFromClient);
-  });
+  // build an array to send back img and endpoint of each NS
+  const nsData = namespaces.map((ns) => ({
+    img: ns.image,
+    endpoint: ns.endpoint,
+  }));
+  // console.log(nsData);
+  // send ns data back to client, use socket NOT io because we just want to send it to this client
+  socket.emit('nsList', nsData);
 });
 
 namespaces.forEach((namespace) => {
-  io.of(namespace.endpoint).on('connection', ((socket) => {
-    console.log(`${socket.id} has join ${namespace.endpoint}`);
+  io.of(namespace.endpoint).on('connection', ((nsSocket) => {
+    console.log(`${nsSocket.id} has join ${namespace.endpoint}`);
+    // a socket has  connected to one of our chatgroup namespaces, send that ns group info back
+    nsSocket.emit('nsRoomLoad', namespaces[0].rooms);
   }));
   // console.log(namespace)
 });
