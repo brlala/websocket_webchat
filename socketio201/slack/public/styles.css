@@ -59,7 +59,7 @@ body{
 .curr-room-num-users, .search{
     font-size: 14px;
     color: #ABB2BF;
-    position: realtive;
+    position: relative;
 }
 
 .search{
@@ -113,4 +113,11 @@ input {
     padding: 5px 10px;
     display: flex;
     align-items: stretch;
+}
+
+.avatar {
+    vertical-align: middle;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
 }

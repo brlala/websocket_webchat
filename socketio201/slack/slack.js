@@ -49,7 +49,7 @@ namespaces.forEach((namespace) => {
         text: msg.text,
         time: Date.now(),
         username,
-        avator: 'https://www.pinclipart.com/picdir/middle/165-1653686_female-user-icon-png-download-user-colorful-icon.png',
+        avatar: 'https://d1nhio0ox7pgb.cloudfront.net/_img/g_collection_png/standard/256x256/user.png',
       };
       // console.log(fullMsg);
       // Send this message to all sockets that re in the room of this socket

@@ -55,7 +55,7 @@ function buildHtml(msg) {
   const convertedDate = new Date(msg.time).toLocaleString();
   const newHtml = `<li>
                     <div class="user-image">
-                        <img src=${msg.avatar} />
+                        <img src=${msg.avatar} alt="Avatar" class="avatar"/>
                     </div>
                     <div class="user-message">
                         <div class="user-name-time">${msg.username} <span>${convertedDate}</span></div>
