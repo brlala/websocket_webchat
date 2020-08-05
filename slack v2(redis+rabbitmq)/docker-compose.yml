@@ -1,0 +1,21 @@
+version: "3.8"
+services:
+  rabbitmq:
+    image: "rabbitmq:3-management"
+    ports:
+      - "5672:5672"
+      - "5673:5673"
+      - "15672:15672"
+    volumes:
+      - 'rabbitmq_data:/data'
+
+  redis:
+    image: "redis:latest"
+    ports:
+      - "6379:6379"
+    volumes:
+      - 'redis_data:/data'
+
+volumes:
+  rabbitmq_data:
+  redis_data:
