@@ -10,5 +10,6 @@ rules: {
   'linebreak-style': ['error', 'windows'],
   'prefer-const': off,
   'no-unused-vars': off,
-  'no-undef': off
+  'no-undef': off,
+  'no-console': off
 }
