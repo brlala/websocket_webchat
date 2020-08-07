@@ -8,17 +8,16 @@ amqp.connect('amqp://localhost', (error0, connection) => {
     if (error1) {
       throw error1;
     }
-    let queue = 'task_queue';
-    let msg = process.argv.slice(2).join(' ') || 'Hello World!';
+    const exchange = 'logs';
+    const msg = process.argv.slice(2).join(' ') || 'Hello World!';
 
-    channel.assertQueue(queue, {
-      durable: true,
+    channel.assertExchange(exchange, 'fanout', {
+      durable: false,
     });
-    channel.sendToQueue(queue, Buffer.from(msg), {
-      persistent: true,
-    });
+    channel.publish(exchange, '', Buffer.from(msg));
     console.log(`[x] Sent ${msg}`);
   });
+
   setTimeout(() => {
     connection.close();
     process.exit(0);
