@@ -3,7 +3,7 @@ let amqp = require('amqplib/callback_api');
 let args = process.argv.slice(2);
 
 if (args.length === 0) {
-  console.log('Usage: receive_logs_direct.js [info] [warning] [error]');
+  console.log('Usage: receive_logs_topic.js <facility>.<severity>');
   process.exit(1);
 }
 
@@ -15,9 +15,9 @@ amqp.connect('amqp://localhost', (error0, connection) => {
     if (error1) {
       throw error1;
     }
-    let exchange = 'direct_logs';
+    let exchange = 'topic_logs';
 
-    channel.assertExchange(exchange, 'direct', {
+    channel.assertExchange(exchange, 'topic', {
       durable: false,
     });
 
@@ -29,12 +29,12 @@ amqp.connect('amqp://localhost', (error0, connection) => {
       }
       console.log(' [*] Waiting for logs. To exit press CTRL+C');
 
-      args.forEach((severity) => {
-        channel.bindQueue(q.queue, exchange, severity);
+      args.forEach((key) => {
+        channel.bindQueue(q.queue, exchange, key);
       });
 
       channel.consume(q.queue, (msg) => {
-        console.log(`[x] ${msg.fields.routingKey}: '${msg.content.toString()}`);
+        console.log(" [x] %s:'%s'", msg.fields.routingKey, msg.content.toString());
       }, {
         noAck: true,
       });
