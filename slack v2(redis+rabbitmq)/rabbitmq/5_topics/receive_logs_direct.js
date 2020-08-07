@@ -27,14 +27,14 @@ amqp.connect('amqp://localhost', (error0, connection) => {
       if (error2) {
         throw error2;
       }
-      console.log(' [*] Waiting for logs. To exit press CTRL+C');
+      console.log('[*] Waiting for logs. To exit press CTRL+C');
 
       args.forEach((key) => {
         channel.bindQueue(q.queue, exchange, key);
       });
 
       channel.consume(q.queue, (msg) => {
-        console.log(" [x] %s:'%s'", msg.fields.routingKey, msg.content.toString());
+        console.log(`[x] ${msg.fields.routingKey}:'${msg.content.toString()}`);
       }, {
         noAck: true,
       });
