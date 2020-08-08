@@ -23,6 +23,7 @@ amqp.connect('amqp://localhost', (error0, connection) => {
 
     channel.assertQueue('', {
       exclusive: true,
+      expires: 60000,
     }, (error2, q) => {
       if (error2) {
         throw error2;
