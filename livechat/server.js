@@ -1,8 +1,13 @@
 const express = require('express');
+const mongoose = require('mongoose');
+require('dotenv').config();
+
+mongoose.connect('mongodb://root:password@127.0.0.1:27017/livechat?serverSelectionTimeoutMS=5000&connectTimeoutMS=10000&authSource=admin&authMechanism=SCRAM-SHA-256', { useNewUrlParser: true, useUnifiedTopology: true });
+const Message = require('./models/Message');
 
 const app = express();
 const socketio = require('socket.io');
-
+const rabbitMq = require('./rabbitmq/initialize');
 const namespaces = require('./data/namespaces');
 // console.log(namespaces)
 app.use(express.static(`${__dirname}/public`));
@@ -44,14 +49,21 @@ namespaces.forEach((namespace) => {
       nsSocket.emit('historyCatchUp', nsRoom.history);
       updateUsersInRoom(namespace, roomToJoin);
     });
-    nsSocket.on('newMessageToServer', (msg) => {
+    nsSocket.on('newMessageToServer', async (msg) => {
       const fullMsg = {
         text: msg.text,
         time: Date.now(),
         username,
-        avatar: 'https://d1nhio0ox7pgb.cloudfront.net/_img/g_collection_png/standard/256x256/user.pang',
+        avatar: 'https://d1nhio0ox7pgb.cloudfront.net/_img/g_collection_png/standard/256x256/user.png',
       };
       console.log(fullMsg);
+      try {
+        const dbResponse = await AddMessageToDb();
+        console.log(dbResponse);
+      } catch (e) {
+        console.log(e);
+      }
+      await rabbitMq.publishMessage(fullMsg);
       // Send this message to all sockets that re in the room of this socket
       // console.log(nsSocket.rooms);
       // User will always be 2nd because first is default room
@@ -73,5 +85,23 @@ function updateUsersInRoom(namespace, roomToJoin) {
   io.of(namespace.endpoint).in(roomToJoin).clients((error, clients) => {
     // console.log(`There are ${clients.length}`);
     io.of(namespace.endpoint).in(roomToJoin).emit('updateMembers', clients.length);
+  });
+}
+
+function AddMessageToDb() {
+  return new Promise((resolve, reject) => {
+    const data = {
+      data: {
+        text: 'Hello, World!',
+      },
+      type: 'message',
+      platform: 'livechat',
+      sender_platform_id: 'agent_id',
+      receiver_platform_id: '2587212094661233',
+      abbr: 'sgosguat',
+    };
+    let message = new Message(data);
+    message.save();
+    resolve('added');
   });
 }
