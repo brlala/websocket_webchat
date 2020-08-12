@@ -20,16 +20,17 @@ class RabbitMq {
       });
 
       // controller queue
-      console.log(process.env.RABBITMQ_CONTROLLER_QUEUE);
       await this.channel.assertQueue(process.env.RABBITMQ_CONTROLLER_QUEUE, {
         durable: true,
       });
 
       // livechat requests exchange
-      await this.channel.assertExchange(process.env.RABBITMQ_EXCHANGE, 'fanout', {
+      await this.channel.assertExchange(process.env.RABBITMQ_EXCHANGE, 'direct', {
         durable: true,
       });
-      await this.channel.bindQueue(process.env.RABBITMQ_QUEUE, process.env.RABBITMQ_EXCHANGE);
+
+      const routing = 'requests';
+      await this.channel.bindQueue(process.env.RABBITMQ_LIVECHAT_QUEUE, process.env.RABBITMQ_EXCHANGE, routing);
     } catch (err) {
       console.log(err);
       throw new Error('Connection failed');

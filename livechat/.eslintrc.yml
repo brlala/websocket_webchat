@@ -7,8 +7,9 @@ parserOptions:
   ecmaVersion: 11
   sourceType: module
 rules: {
-  'linebreak-style': ['error', 'windows'],
-  'prefer-const': off,
-  'no-unused-vars': off,
-  'no-undef': off
+  linebreak-style: ['error', 'windows'],
+  prefer-const: off,
+  no-unused-vars: off,
+  no-undef: off,
+  max-len: off,
 }
