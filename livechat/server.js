@@ -6,13 +6,12 @@ mongoose.connect(process.env.MONGODB_URL, { useNewUrlParser: true, useUnifiedTop
 const Message = require('./models/Message');
 
 const app = express();
-const socketio = require('socket.io');
-const rabbitMq = require('./rabbitmq/initialize');
+const { rabbitMq } = require('./rabbitmq/initialize');
 const namespaces = require('./data/namespaces');
 // console.log(namespaces)
 app.use(express.static(`${__dirname}/public`));
 const expressServer = app.listen(9000);
-const io = socketio(expressServer);
+const io = require('./socketio').initialize(expressServer);
 
 // main namespace connection
 io.on('connection', (socket) => {
@@ -30,6 +29,7 @@ io.on('connection', (socket) => {
 namespaces.forEach((namespace) => {
   io.of(namespace.endpoint).on('connection', ((nsSocket) => {
     const { username } = nsSocket.handshake.query;
+
     // console.log(`${nsSocket.id} has join ${namespace.endpoint}`);
     // a socket has  connected to one of our chatgroup namespaces, send that ns group info back
     nsSocket.emit('nsRoomLoad', namespace.rooms);
@@ -50,35 +50,50 @@ namespaces.forEach((namespace) => {
       updateUsersInRoom(namespace, roomToJoin);
     });
     nsSocket.on('newMessageToServer', async (msg) => {
-      const fullMsg = {
-        text: msg.text,
-        time: Date.now(),
-        username,
-        avatar: 'https://d1nhio0ox7pgb.cloudfront.net/_img/g_collection_png/standard/256x256/user.png',
-      };
-      console.log(fullMsg);
-      try {
-        const dbResponse = await AddMessageToDb();
-        console.log(dbResponse);
-      } catch (e) {
-        console.log(e);
-      }
-      await rabbitMq.publishMessage(fullMsg);
-      // Send this message to all sockets that re in the room of this socket
-      // console.log(nsSocket.rooms);
-      // User will always be 2nd because first is default room
-      const roomTitle = Object.keys(nsSocket.rooms)[1];
-
-      // finding the room object for the room
-      const nsRoom = namespace.rooms.find((room) => room.roomTitle === roomTitle);
-      nsRoom.addMessage(fullMsg);
-      // console.log('matched room');
-      // console.log(nsRoom);
-      io.of(namespace.endpoint).to(roomTitle).emit('messageToClients', fullMsg);
+      msg.username = username;
+      sendMessageToClient(nsSocket, namespace, msg);
     });
   }));
   // console.log(namespace)
 });
+
+async function sendMessageToClient(nsSocket, namespace, msg) {
+  const fullMsg = {
+    text: msg.text,
+    time: Date.now(),
+    username: msg.username,
+    avatar: 'https://d1nhio0ox7pgb.cloudfront.net/_img/g_collection_png/standard/256x256/user.png',
+  };
+  console.log(fullMsg);
+  try {
+    const dbResponse = await AddMessageToDb();
+    console.log(dbResponse);
+  } catch (e) {
+    console.log(e);
+  }
+  await rabbitMq.publishMessage(fullMsg);
+  // Send this message to all sockets that re in the room of this socket
+  // console.log(nsSocket.rooms);
+  // User will always be 2nd because first is default room
+  const roomTitle = Object.keys(nsSocket.rooms)[1];
+
+  // finding the room object for the room
+  const nsRoom = namespace.rooms.find((room) => room.roomTitle === roomTitle);
+  nsRoom.addMessage(fullMsg);
+  // console.log('matched room');
+  // console.log(nsRoom);
+  io.of(namespace.endpoint).to(roomTitle).emit('messageToClients', fullMsg);
+}
+
+function sendMockMsg() {
+  const fullMsg = {
+    text: 'HIIIII!',
+    time: Date.now(),
+    username: 'USERNAME IS ME',
+    avatar: 'https://d1nhio0ox7pgb.cloudfront.net/_img/g_collection_png/standard/256x256/user.png',
+  };
+  io.of('/wiki').to('New Articles').emit('messageToClients', fullMsg);
+}
 
 function updateUsersInRoom(namespace, roomToJoin) {
   // send number of users to everyone connected in the room
@@ -105,3 +120,11 @@ function AddMessageToDb() {
     resolve('added');
   });
 }
+
+function getMainSocket() {
+  return io;
+}
+
+module.exports = {
+  getMainSocket,
+};
