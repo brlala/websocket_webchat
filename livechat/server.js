@@ -120,11 +120,3 @@ function AddMessageToDb() {
     resolve('added');
   });
 }
-
-function getMainSocket() {
-  return io;
-}
-
-module.exports = {
-  getMainSocket,
-};
