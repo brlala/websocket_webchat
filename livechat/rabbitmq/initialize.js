@@ -88,7 +88,7 @@ class RabbitMq {
       console.log(`Start consuming userqueue ${userQueueName}`);
       this.channel.consume(userQueueName, (msg) => {
         console.log(`[x] Received ${msg.content.toString()}`);
-        handleMessage(msg);
+        handleMessage(JSON.parse(msg.content));
         // send message to livechat agent
       }, {
         // automatic acknowledgment mode,

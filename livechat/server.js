@@ -1,16 +1,24 @@
 const express = require('express');
-const mongoose = require('mongoose');
 require('dotenv').config();
+// Database
+const mongoose = require('./database').initialize(process.env.MONGODB_URL);
 
-mongoose.connect(process.env.MONGODB_URL, { useNewUrlParser: true, useUnifiedTopology: true });
+// Models
 const Message = require('./models/Message');
 
-const app = express();
+// Queue
 const { rabbitMq } = require('./rabbitmq/initialize');
+
+// Main
+const app = express();
+
+// Application Logic
 const namespaces = require('./data/namespaces');
 // console.log(namespaces)
 app.use(express.static(`${__dirname}/public`));
-const expressServer = app.listen(9000);
+const expressServer = app.listen(process.env.PORT, () => {
+  console.log(`Server is running on Port: ${process.env.PORT}`);
+});
 const io = require('./socketio').initialize(expressServer);
 
 // main namespace connection
@@ -65,34 +73,35 @@ async function sendMessageToClient(nsSocket, namespace, msg) {
     avatar: 'https://d1nhio0ox7pgb.cloudfront.net/_img/g_collection_png/standard/256x256/user.png',
   };
   console.log(fullMsg);
+  const data = {
+    data: {
+      text: msg.text,
+    },
+    type: 'message',
+    platform: 'widget',
+    sender_platform_id: 'agent_id',
+    receiver_platform_id: '2587212094661233',
+    abbr: process.env.ABBREVIATION,
+  };
   try {
-    const dbResponse = await AddMessageToDb();
+    const dbResponse = await AddMessageToDb(data);
     console.log(dbResponse);
   } catch (e) {
     console.log(e);
   }
-  await rabbitMq.publishMessage(fullMsg);
+  await rabbitMq.publishMessage(data);
   // Send this message to all sockets that re in the room of this socket
   // console.log(nsSocket.rooms);
   // User will always be 2nd because first is default room
   const roomTitle = Object.keys(nsSocket.rooms)[1];
 
   // finding the room object for the room
+  console.log(namespace.rooms);
   const nsRoom = namespace.rooms.find((room) => room.roomTitle === roomTitle);
   nsRoom.addMessage(fullMsg);
   // console.log('matched room');
   // console.log(nsRoom);
   io.of(namespace.endpoint).to(roomTitle).emit('messageToClients', fullMsg);
-}
-
-function sendMockMsg() {
-  const fullMsg = {
-    text: 'HIIIII!',
-    time: Date.now(),
-    username: 'USERNAME IS ME',
-    avatar: 'https://d1nhio0ox7pgb.cloudfront.net/_img/g_collection_png/standard/256x256/user.png',
-  };
-  io.of('/wiki').to('New Articles').emit('messageToClients', fullMsg);
 }
 
 function updateUsersInRoom(namespace, roomToJoin) {
@@ -103,18 +112,8 @@ function updateUsersInRoom(namespace, roomToJoin) {
   });
 }
 
-function AddMessageToDb() {
+function AddMessageToDb(data) {
   return new Promise((resolve, reject) => {
-    const data = {
-      data: {
-        text: 'Hello, World!',
-      },
-      type: 'message',
-      platform: 'livechat',
-      sender_platform_id: 'agent_id',
-      receiver_platform_id: '2587212094661233',
-      abbr: 'sgosguat',
-    };
     let message = new Message(data);
     message.save();
     resolve('added');
