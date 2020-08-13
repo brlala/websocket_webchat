@@ -16,7 +16,7 @@ const app = express();
 const namespaces = require('./data/namespaces');
 // console.log(namespaces)
 app.use(express.static(`${__dirname}/public`));
-const expressServer = app.listen(process.env.PORT, () => {
+const expressServer = app.listen(process.env.APP_PORT, () => {
   console.log(`Server is running on Port: ${process.env.PORT}`);
 });
 const io = require('./socketio').initialize(expressServer);
@@ -34,36 +34,40 @@ io.on('connection', (socket) => {
   socket.emit('nsList', nsData);
 });
 
-namespaces.forEach((namespace) => {
-  io.of(namespace.endpoint).on('connection', ((nsSocket) => {
-    const { username } = nsSocket.handshake.query;
+function reloadNamespace() {
+  namespaces.forEach((namespace) => {
+    io.of(namespace.endpoint).on('connection', ((nsSocket) => {
+      const { username } = nsSocket.handshake.query;
 
-    // console.log(`${nsSocket.id} has join ${namespace.endpoint}`);
-    // a socket has  connected to one of our chatgroup namespaces, send that ns group info back
-    nsSocket.emit('nsRoomLoad', namespace.rooms);
-    nsSocket.on('joinRoom', (roomToJoin, numberOfUsersCallback) => {
-      // deal with history... once we have it
-      console.log(nsSocket.rooms);
-      const roomToLeave = Object.keys(nsSocket.rooms)[1];
-      nsSocket.leave(roomToLeave);
-      updateUsersInRoom(namespace, roomToLeave);
-      nsSocket.join(roomToJoin);
-      // io.of('/wiki').in(roomToJoin).clients((error, clients) => {
-      //   console.log(clients.length);
-      //   numberOfUsersCallback(clients.length);
-      // });
-      const nsRoom = namespace.rooms.find((room) => room.roomTitle === roomToJoin);
-      // console.log(nsRoom);
-      nsSocket.emit('historyCatchUp', nsRoom.history);
-      updateUsersInRoom(namespace, roomToJoin);
-    });
-    nsSocket.on('newMessageToServer', async (msg) => {
-      msg.username = username;
-      sendMessageToClient(nsSocket, namespace, msg);
-    });
-  }));
-  // console.log(namespace)
-});
+      // console.log(`${nsSocket.id} has join ${namespace.endpoint}`);
+      // a socket has  connected to one of our chatgroup namespaces, send that ns group info back
+      nsSocket.emit('nsRoomLoad', namespace.rooms);
+      nsSocket.on('joinRoom', (roomToJoin, numberOfUsersCallback) => {
+        // deal with history... once we have it
+        console.log(nsSocket.rooms);
+        const roomToLeave = Object.keys(nsSocket.rooms)[1];
+        nsSocket.leave(roomToLeave);
+        updateUsersInRoom(namespace, roomToLeave);
+        nsSocket.join(roomToJoin);
+        // io.of('/wiki').in(roomToJoin).clients((error, clients) => {
+        //   console.log(clients.length);
+        //   numberOfUsersCallback(clients.length);
+        // });
+        const nsRoom = namespace.rooms.find((room) => room.roomTitle === roomToJoin);
+        // console.log(nsRoom);
+        nsSocket.emit('historyCatchUp', nsRoom.history);
+        updateUsersInRoom(namespace, roomToJoin);
+      });
+      nsSocket.on('newMessageToServer', async (msg) => {
+        msg.username = username;
+        sendMessageToClient(nsSocket, namespace, msg);
+      });
+    }));
+    // console.log(namespace)
+  });
+}
+reloadNamespace();
+module.exports.reloadNamespace = reloadNamespace;
 
 async function sendMessageToClient(nsSocket, namespace, msg) {
   const fullMsg = {
