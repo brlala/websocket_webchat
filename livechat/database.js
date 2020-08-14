@@ -3,8 +3,8 @@ const mongoose = require('mongoose');
 function dbConnect() {
 // Establish MongoDB connection
   console.log(`Connecting to MongoDB database ${process.env.DB_SERVER}:${process.env.DB_PORT} database ${process.env.ABBREVIATION}...`);
-
   const mongoUrl = `mongodb://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@${process.env.DB_SERVER}:${process.env.DB_PORT}/${process.env.DB_AUTH_DATABASE}`;
+
   // Initiate connection:
   mongoose.connect(mongoUrl, {
     dbName: process.env.DB_DATABASE, // Connect to the specified database

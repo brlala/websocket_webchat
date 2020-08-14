@@ -1,5 +1,6 @@
 const amqp = require('amqplib');
 const handleMessage = require('../job');
+const { getFormattedIpAddress } = require('../networking');
 
 const url = process.env.RABBITMQ_SERVER;
 
@@ -16,9 +17,11 @@ class RabbitMq {
       this.channel = await this.connection.createChannel();
       this.channel.prefetch(1);
 
-      // chatbot queue
-      await this.channel.assertQueue(process.env.RABBITMQ_LIVECHAT_QUEUE, {
+      const RABBITMQ_LIVECHAT_QUEUE = `livechat_${getFormattedIpAddress()}_0`;
+      // livechat queue
+      await this.channel.assertQueue(RABBITMQ_LIVECHAT_QUEUE, {
         durable: true,
+        expires: 60000,
       });
 
       // controller queue
@@ -32,36 +35,44 @@ class RabbitMq {
       });
 
       const routing = 'requests';
-      await this.channel.bindQueue(process.env.RABBITMQ_LIVECHAT_QUEUE, process.env.RABBITMQ_EXCHANGE, routing);
-      let userQueueName = await this.consumeQueue(process.env.RABBITMQ_LIVECHAT_QUEUE);
-      this.consumeUserQueue(userQueueName);
+      await this.channel.bindQueue(RABBITMQ_LIVECHAT_QUEUE, process.env.RABBITMQ_EXCHANGE, routing);
+      let userQueueName = await this.consumeQueue(RABBITMQ_LIVECHAT_QUEUE);
+      await this.consumeUserQueue(userQueueName);
     } catch (err) {
       console.log(err);
       throw new Error('Connection failed');
     }
   }
 
-  async sendDataToQueue(queue, data) {
-    this.channel.assertQueue(queue, {
-      durable: true,
-      expire: 3600000,
-    });
+  async sendDataToQueue(queue, data, options) {
+    this.channel.assertQueue(queue, options);
     this.channel.sendToQueue(queue, Buffer.from(JSON.stringify(data)), {
       persistent: true,
     });
   }
 
-  async sendDataToControllerQueue(data) {
-    const controllerQueue = 'livechat_to_gateway';
+  async sendDataToUserQueue(queue, data) {
     // controller queue
-    await this.sendDataToQueue(controllerQueue, data);
+    const options = {
+      durable: true,
+      expires: 3600000,
+    };
+    await this.sendDataToQueue(queue, data, options);
+  }
+
+  async sendDataToControllerQueue(data) {
+    const controllerQueue = process.env.RABBITMQ_CONTROLLER_QUEUE;
+    // controller queue
+    const options = {
+      durable: true,
+    };
+    await this.sendDataToQueue(controllerQueue, data, options);
   }
 
   async publishMessage(fullMessage) {
     console.log('publishing');
-    const queue = `livechat_to_gateway_${process.env.ABBREVIATION}_${fullMessage.receiver_platform_id}`;
-
-    await this.sendDataToQueue(queue, fullMessage);
+    const queue = `${process.env.RABBITMQ_CONTROLLER_QUEUE}_${process.env.ABBREVIATION}_${fullMessage.receiver_platform_id}`;
+    await this.sendDataToUserQueue(queue, fullMessage);
     await this.sendDataToControllerQueue(queue);
 
     console.log(`[x] Sent ${JSON.stringify(fullMessage)} to ${queue}`);
