@@ -59,7 +59,7 @@ class RabbitMq {
 
   async publishMessage(fullMessage) {
     console.log('publishing');
-    const queue = `livechat_to_gateway_${process.env.ABBREVIATION}_${fullMessage.username}`;
+    const queue = `livechat_to_gateway_${process.env.ABBREVIATION}_${fullMessage.receiver_platform_id}`;
 
     await this.sendDataToQueue(queue, fullMessage);
     await this.sendDataToControllerQueue(queue);

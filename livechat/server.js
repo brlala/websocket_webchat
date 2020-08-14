@@ -1,7 +1,7 @@
 const express = require('express');
 require('dotenv').config();
 // Database
-const mongoose = require('./database').initialize(process.env.MONGODB_URL);
+const db = require('./database').initialize();
 
 // Models
 const Message = require('./models/Message');
