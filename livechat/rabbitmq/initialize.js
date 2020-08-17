@@ -44,9 +44,16 @@ class RabbitMq {
     }
   }
 
-  async sendDataToQueue(queue, data, options) {
+  async sendJsonDataToQueue(queue, data, options) {
     this.channel.assertQueue(queue, options);
     this.channel.sendToQueue(queue, Buffer.from(JSON.stringify(data)), {
+      persistent: true,
+    });
+  }
+
+  async sendStringDataToQueue(queue, data, options) {
+    this.channel.assertQueue(queue, options);
+    this.channel.sendToQueue(queue, Buffer.from(data), {
       persistent: true,
     });
   }
@@ -57,7 +64,7 @@ class RabbitMq {
       durable: true,
       expires: 3600000,
     };
-    await this.sendDataToQueue(queue, data, options);
+    await this.sendJsonDataToQueue(queue, data, options);
   }
 
   async sendDataToControllerQueue(data) {
@@ -66,7 +73,7 @@ class RabbitMq {
     const options = {
       durable: true,
     };
-    await this.sendDataToQueue(controllerQueue, data, options);
+    await this.sendStringDataToQueue(controllerQueue, data, options);
   }
 
   async publishMessage(fullMessage) {
