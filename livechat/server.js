@@ -4,7 +4,7 @@ require('dotenv').config();
 const db = require('./database').initialize();
 
 // Models
-const Message = require('./models/Message');
+const SessionMessage = require('./models/Message');
 
 // Queue
 const { rabbitMq } = require('./rabbitmq/initialize');
@@ -85,7 +85,7 @@ async function sendMessageToClient(nsSocket, namespace, msg) {
     type: 'message',
     platform: 'widget',
     sender_platform_id: 'agent_id',
-    receiver_platform_id: '2587212094661233',
+    session_id: '5f3635785f57c2c2cf02242c',
     abbr: process.env.ABBREVIATION,
   };
   try {
@@ -119,7 +119,7 @@ function updateUsersInRoom(namespace, roomToJoin) {
 
 function AddMessageToDb(data) {
   return new Promise((resolve, reject) => {
-    let message = new Message(data);
+    let message = new SessionMessage(data);
     message.save();
     resolve('added');
   });

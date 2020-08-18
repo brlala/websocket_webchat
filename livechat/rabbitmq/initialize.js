@@ -78,7 +78,7 @@ class RabbitMq {
 
   async publishMessage(fullMessage) {
     console.log('publishing');
-    const queue = `${process.env.RABBITMQ_CONTROLLER_QUEUE}_${process.env.ABBREVIATION}_${fullMessage.receiver_platform_id}`;
+    const queue = `${process.env.RABBITMQ_CONTROLLER_QUEUE}_${process.env.ABBREVIATION}_${fullMessage.session_id}`;
     await this.sendDataToUserQueue(queue, fullMessage);
     await this.sendDataToControllerQueue(queue);
 
