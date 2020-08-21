@@ -12,6 +12,9 @@ module.exports = function (msg) {
     username: msg.session_id,
     avatar: 'https://d1nhio0ox7pgb.cloudfront.net/_img/g_collection_png/standard/256x256/user.png',
   };
-  namespaces[0].addRoom(new Room(uuidv4(), msg.session_id, 'Wiki'));
+  const userRoom = new Room(uuidv4(), msg.session_id, 'Wiki');
+  userRoom.addMessage(fullMsg);
+  namespaces[0].addRoom(userRoom);
+
   io.of('/wiki').to(msg.session_id).emit('messageToClients', fullMsg);
 };

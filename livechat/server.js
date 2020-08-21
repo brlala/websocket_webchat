@@ -1,10 +1,13 @@
 const express = require('express');
 require('dotenv').config();
+
 // Database
+const mongoose = require('mongoose');
 const db = require('./database').initialize();
 
 // Models
 const SessionMessage = require('./models/Message');
+const Session = require('./models/Session');
 
 // Queue
 const { rabbitMq } = require('./rabbitmq/initialize');
@@ -59,6 +62,16 @@ function reloadNamespace() {
         nsSocket.emit('historyCatchUp', nsRoom.history);
         updateUsersInRoom(namespace, roomToJoin);
       });
+      nsSocket.on('removeRoom', async (roomToRemove) => {
+        // deal with history... once we have it
+        const roomIndex = namespace.rooms.findIndex((room) => room.roomTitle === roomToRemove);
+        console.log(roomIndex);
+        namespaces[0].removeRoom(roomToRemove);
+
+        // change user chat state
+        const res = await changeUserChatState(roomToRemove, 'bot');
+        console.log('finding', res);
+      });
       nsSocket.on('newMessageToServer', async (msg) => {
         msg.username = username;
         sendMessageToClient(nsSocket, namespace, msg);
@@ -89,7 +102,7 @@ async function sendMessageToClient(nsSocket, namespace, msg) {
     abbr: process.env.ABBREVIATION,
   };
   try {
-    const dbResponse = await AddMessageToDb(data);
+    const dbResponse = await addMessageToDb(data);
     console.log(dbResponse);
   } catch (e) {
     console.log(e);
@@ -117,10 +130,23 @@ function updateUsersInRoom(namespace, roomToJoin) {
   });
 }
 
-function AddMessageToDb(data) {
+function addMessageToDb(data) {
   return new Promise((resolve, reject) => {
     let message = new SessionMessage(data);
     message.save();
     resolve('added');
+  });
+}
+
+function changeUserChatState(userId, state) {
+  console.log(`searching for ${userId}`);
+  return new Promise((resolve, reject) => {
+    const queryRes = Session.findOneAndUpdate({ _id: userId }, { chat_state: state }, {
+      returnOriginal: false
+    });
+    resolve(queryRes)
+    // let message = new SessionMessage(data);
+    // message.save();
+    // resolve('added');
   });
 }

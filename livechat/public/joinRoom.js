@@ -31,3 +31,8 @@ function joinRoom(roomName) {
     });
   });
 }
+
+function removeRoom(roomName) {
+  // Send this room name to server so they can join
+  nsSocket.emit('removeRoom', roomName);
+}

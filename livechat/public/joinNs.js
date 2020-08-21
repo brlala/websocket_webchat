@@ -18,7 +18,7 @@ function joinNs(endpoint) {
       } else {
         glyph = 'globe';
       }
-      roomList.innerHTML += `<li class="room"><span class="glyphicon glyphicon-${glyph}"></span>${room.roomTitle}</li>`;
+      roomList.innerHTML += `<li class="room"><span class="glyphicon glyphicon-${glyph}"></span>${room.roomTitle}</li><button class="roomDisconnect" value="${room.roomTitle}">Disconnect</button>`;
     });
     // add click listener to each room
     const roomNodes = document.getElementsByClassName('room');
@@ -26,6 +26,15 @@ function joinNs(endpoint) {
       elem.addEventListener('click', (e) => {
         console.log('Someone clicked on', e.target.innerText);
         joinRoom(e.target.innerText);
+      });
+    });
+
+    // add click listener to each room for disconnect
+    const roomNodesDisconnect = document.getElementsByClassName('roomDisconnect');
+    Array.from(roomNodesDisconnect).forEach((elem) => {
+      elem.addEventListener('click', (e) => {
+        console.log('Someone disconnected on', e.target.value);
+        removeRoom(e.target.value);
       });
     });
     // add room automatically, first time here

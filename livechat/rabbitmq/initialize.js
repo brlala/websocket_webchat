@@ -24,6 +24,11 @@ class RabbitMq {
         expires: 60000,
       });
 
+      // gateway to livechat queue
+      await this.channel.assertQueue(process.env.RABBITMQ_GATEWAY_CONTROLLER_QUEUE, {
+        durable: true,
+      });
+
       // controller queue
       await this.channel.assertQueue(process.env.RABBITMQ_CONTROLLER_QUEUE, {
         durable: true,
@@ -33,9 +38,13 @@ class RabbitMq {
       await this.channel.assertExchange(process.env.RABBITMQ_EXCHANGE, 'direct', {
         durable: true,
       });
-
       const routing = 'requests';
       await this.channel.bindQueue(RABBITMQ_LIVECHAT_QUEUE, process.env.RABBITMQ_EXCHANGE, routing);
+
+      // sending tasks in task queue to livechat worker queue
+      let taskQueue = await this.consumeQueue(process.env.RABBITMQ_GATEWAY_CONTROLLER_QUEUE);
+      await this.sendTaskToWorkerQueue(taskQueue, RABBITMQ_LIVECHAT_QUEUE);
+
       let userQueueName = await this.consumeQueue(RABBITMQ_LIVECHAT_QUEUE);
       await this.consumeUserQueue(userQueueName);
     } catch (err) {
@@ -65,6 +74,15 @@ class RabbitMq {
       expires: 3600000,
     };
     await this.sendJsonDataToQueue(queue, data, options);
+  }
+
+  async sendTaskToWorkerQueue(taskName, workerQueueName) {
+    // controller queue
+    const options = {
+      durable: true,
+      expires: 60000,
+    };
+    await this.sendStringDataToQueue(workerQueueName, taskName, options);
   }
 
   async sendDataToControllerQueue(data) {
