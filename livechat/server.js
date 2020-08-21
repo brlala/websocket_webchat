@@ -46,7 +46,7 @@ function reloadNamespace() {
       // console.log(`${nsSocket.id} has join ${namespace.endpoint}`);
       // a socket has  connected to one of our chatgroup namespaces, send that ns group info back
       nsSocket.emit('nsRoomLoad', namespace.rooms);
-      nsSocket.on('joinRoom', (roomToJoin, numberOfUsersCallback) => {
+      nsSocket.on('joinRoom', async (roomToJoin, numberOfUsersCallback) => {
         // deal with history... once we have it
         console.log(nsSocket.rooms);
         const roomToLeave = Object.keys(nsSocket.rooms)[1];
@@ -57,6 +57,8 @@ function reloadNamespace() {
         //   console.log(clients.length);
         //   numberOfUsersCallback(clients.length);
         // });
+        console.log('setting join state for:', roomToJoin);
+        const res = await changeUserChatState(roomToJoin, 'livechat');
         const nsRoom = namespace.rooms.find((room) => room.roomTitle === roomToJoin);
         // console.log(nsRoom);
         nsSocket.emit('historyCatchUp', nsRoom.history);
@@ -84,6 +86,7 @@ reloadNamespace();
 module.exports.reloadNamespace = reloadNamespace;
 
 async function sendMessageToClient(nsSocket, namespace, msg) {
+  console.log(nsSocket.handshake)
   const fullMsg = {
     text: msg.text,
     time: Date.now(),
@@ -142,9 +145,10 @@ function changeUserChatState(userId, state) {
   console.log(`searching for ${userId}`);
   return new Promise((resolve, reject) => {
     const queryRes = Session.findOneAndUpdate({ _id: userId }, { chat_state: state }, {
-      returnOriginal: false
+      returnOriginal: false,
+      useFindAndModify: false,
     });
-    resolve(queryRes)
+    resolve(queryRes);
     // let message = new SessionMessage(data);
     // message.save();
     // resolve('added');

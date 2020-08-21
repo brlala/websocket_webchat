@@ -1,5 +1,5 @@
 const amqp = require('amqplib');
-const handleMessage = require('../job');
+const { handleMessage, addRequestRoom } = require('../job');
 const { getFormattedIpAddress } = require('../networking');
 
 const url = process.env.RABBITMQ_SERVER;
@@ -41,12 +41,23 @@ class RabbitMq {
       const routing = 'requests';
       await this.channel.bindQueue(RABBITMQ_LIVECHAT_QUEUE, process.env.RABBITMQ_EXCHANGE, routing);
 
-      // sending tasks in task queue to livechat worker queue
-      let taskQueue = await this.consumeQueue(process.env.RABBITMQ_GATEWAY_CONTROLLER_QUEUE);
-      await this.sendTaskToWorkerQueue(taskQueue, RABBITMQ_LIVECHAT_QUEUE);
+      // consume from worker queue, if it's a request, add a room, else, consume the queue
+      await this.channel.consume(RABBITMQ_LIVECHAT_QUEUE, async (msg) => {
+        const data = msg.content.toString();
+        console.log(`Received ${data} from ${RABBITMQ_LIVECHAT_QUEUE}`);
+        if (data.startsWith(process.env.RABBITMQ_GATEWAY_CONTROLLER_QUEUE)) {
+          await this.consumeUserQueue(data);
+        } else {
+          addRequestRoom(data);
+        }
+      },
+      {
+        noAck: true,
+      });
 
-      let userQueueName = await this.consumeQueue(RABBITMQ_LIVECHAT_QUEUE);
-      await this.consumeUserQueue(userQueueName);
+      // sending tasks in task queue to livechat worker queue
+      // let taskQueue = await this.consumeQueue(process.env.RABBITMQ_GATEWAY_CONTROLLER_QUEUE);
+      // let res = await this.sendTaskToWorkerQueue(taskQueue, RABBITMQ_LIVECHAT_QUEUE);
     } catch (err) {
       console.log(err);
       throw new Error('Connection failed');
@@ -105,7 +116,7 @@ class RabbitMq {
 
   consumeQueue(queueName) {
     return new Promise((resolve, reject) => {
-      console.log('consuming');
+      console.log(`consuming ${queueName}`);
       this.channel.consume(queueName, (userQueue) => {
         const userQueueName = userQueue.content.toString();
         console.log(`[x] Received ${userQueueName}`);
