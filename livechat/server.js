@@ -3,8 +3,8 @@ require('dotenv').config();
 
 // Database
 const mongoose = require('mongoose');
-const { ObjectId } = require('mongoose').Types;
 const db = require('./database').initialize();
+const { validateObjectId } = require('./database');
 
 // Models
 const SessionMessage = require('./models/Message');
@@ -18,6 +18,7 @@ const app = express();
 
 // Application Logic
 const namespaces = require('./data/namespaces');
+const User = require('./classes/User');
 // console.log(namespaces)
 app.use(express.static(`${__dirname}/public`));
 const PORT = process.env.APP_PORT;
@@ -25,6 +26,9 @@ const expressServer = app.listen(PORT, () => {
   console.log(`Server is running on Port: ${PORT}`);
 });
 const io = require('./socketio').initialize(expressServer);
+
+// variables to record user info
+let users = [];
 
 // main namespace connection
 io.on('connection', (socket) => {
@@ -42,12 +46,12 @@ io.on('connection', (socket) => {
 function reloadNamespace() {
   namespaces.forEach((namespace) => {
     io.of(namespace.endpoint).on('connection', ((nsSocket) => {
-      const { username } = nsSocket.handshake.query;
+      // const { username } = nsSocket.handshake.query;
 
       // console.log(`${nsSocket.id} has join ${namespace.endpoint}`);
       // a socket has  connected to one of our chatgroup namespaces, send that ns group info back
       nsSocket.emit('nsRoomLoad', namespace.rooms);
-      nsSocket.on('joinRoom', async (roomToJoin, numberOfUsersCallback) => {
+      nsSocket.on('joinRoom', async ({ roomToJoin, username }, numberOfUsersCallback) => {
         // deal with history... once we have it
         console.log(nsSocket.rooms);
         const roomToLeave = Object.keys(nsSocket.rooms)[1];
@@ -58,8 +62,25 @@ function reloadNamespace() {
         //   console.log(clients.length);
         //   numberOfUsersCallback(clients.length);
         // });
-        console.log('setting join state for:', roomToJoin);
-        const res = await changeUserChatState(roomToJoin, 'livechat');
+        console.log('Users: ', users);
+        if (!users.some((user) => user.userId === roomToJoin) && validateObjectId(roomToJoin)) {
+          // only set the state and send first message if user does not exist in list
+          console.log('setting join state for: ', roomToJoin);
+          await changeUserChatState(roomToJoin, 'livechat');
+          const user = new User(roomToJoin, 'no platform', 'connected');
+          users.push(user);
+          console.log(users);
+          const data = {
+            data: {
+              subtype: 'connect',
+              text: `You are currently connected with ${username}.`,
+            },
+            type: 'livechat',
+            session_id: roomToJoin,
+          };
+          await rabbitMq.publishMessage(data);
+        }
+
         const nsRoom = namespace.rooms.find((room) => room.roomTitle === roomToJoin);
         // console.log(nsRoom);
         nsSocket.emit('historyCatchUp', nsRoom.history);
@@ -109,7 +130,7 @@ async function sendMessageToClient(nsSocket, namespace, msg) {
   // } catch (e) {
   //   console.log(e);
   // }
-  if (ObjectId.isValid(msg.room)) {
+  if (validateObjectId(msg.room)) {
     // only publish to queue if room is from valid users
     await rabbitMq.publishMessage(data);
   }

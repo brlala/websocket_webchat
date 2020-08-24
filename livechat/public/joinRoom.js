@@ -1,6 +1,6 @@
 function joinRoom(roomName) {
   // Send this room name to server so they can join
-  nsSocket.emit('joinRoom', roomName, (newNumberOfMembers) => {
+  nsSocket.emit('joinRoom', { roomToJoin: roomName, username: socket.username }, (newNumberOfMembers) => {
     // we want to update the room member total after joining
     document.querySelector('.curr-room-num-users').innerHTML = `${newNumberOfMembers} <span class="glyphicon glyphicon-user"></span>`;
   });

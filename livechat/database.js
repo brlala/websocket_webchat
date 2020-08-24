@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { ObjectId } = require('mongoose').Types;
 
 function dbConnect() {
 // Establish MongoDB connection
@@ -36,7 +37,12 @@ module.exports.getDb = function () {
   return mongoose;
 };
 
+module.exports.validateObjectId = function (idToCheck) {
+  return idToCheck && ObjectId.isValid(idToCheck) && new ObjectId(idToCheck) == idToCheck ? idToCheck : null;
+}
+
 exports.initialize = dbConnect;
+
 // exports.initialize = function (dbUrl) {
 //   mongoose.connect(dbUrl, { useNewUrlParser: true, useUnifiedTopology: true });
 //   const { connection } = mongoose;
