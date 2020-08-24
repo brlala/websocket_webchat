@@ -102,12 +102,12 @@ async function sendMessageToClient(nsSocket, namespace, msg) {
     session_id: msg.room,
     abbr: process.env.ABBREVIATION,
   };
-  try {
-    const dbResponse = await addMessageToDb(data);
-    console.log(dbResponse);
-  } catch (e) {
-    console.log(e);
-  }
+  // try {
+  //   const dbResponse = await addMessageToDb(data);
+  //   console.log(dbResponse);
+  // } catch (e) {
+  //   console.log(e);
+  // }
   await rabbitMq.publishMessage(data);
   // Send this message to all sockets that re in the room of this socket
   // console.log(nsSocket.rooms);
