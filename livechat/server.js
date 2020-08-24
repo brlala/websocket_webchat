@@ -75,7 +75,6 @@ function reloadNamespace() {
         console.log('finding', res);
       });
       nsSocket.on('newMessageToServer', async (msg) => {
-        msg.username = username;
         sendMessageToClient(nsSocket, namespace, msg);
       });
     }));
@@ -86,10 +85,6 @@ reloadNamespace();
 module.exports.reloadNamespace = reloadNamespace;
 
 async function sendMessageToClient(nsSocket, namespace, msg) {
-  console.log('nssocket handshake');
-  console.log(nsSocket.handshake);
-  console.log('msg');
-  console.log(msg);
   const fullMsg = {
     text: msg.text,
     time: Date.now(),
@@ -103,7 +98,7 @@ async function sendMessageToClient(nsSocket, namespace, msg) {
     },
     type: 'message',
     platform: 'widget',
-    sender_platform_id: 'agent_id',
+    sender_platform_id: msg.username,
     session_id: msg.room,
     abbr: process.env.ABBREVIATION,
   };

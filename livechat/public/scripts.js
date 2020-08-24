@@ -5,6 +5,8 @@ const socket = io('http://localhost:9000', {
     username,
   },
 });
+socket.username = username;
+
 let nsSocket = '';
 
 // listen for nsList, which is a list of all the namespaces

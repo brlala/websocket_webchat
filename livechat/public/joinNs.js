@@ -58,7 +58,7 @@ function formSubmission(event) {
   event.preventDefault();
   const newMessage = document.querySelector('#user-message').value;
   const roomName = document.querySelector('.curr-room-text').textContent;
-  nsSocket.emit('newMessageToServer', { text: newMessage, room: roomName });
+  nsSocket.emit('newMessageToServer', { text: newMessage, room: roomName, username: socket.username });
 }
 
 function buildHtml(msg) {

@@ -56,8 +56,19 @@ class RabbitMq {
       });
 
       // consume from task queue and queue it to worker queue
-      let taskQueue = await this.consumeQueue(process.env.RABBITMQ_GATEWAY_CONTROLLER_QUEUE);
-      let res = await this.sendTaskToWorkerQueue(`${process.env.RABBITMQ_GATEWAY_CONTROLLER_QUEUE}_${taskQueue}`, RABBITMQ_LIVECHAT_QUEUE);
+      await this.channel.consume(process.env.RABBITMQ_GATEWAY_CONTROLLER_QUEUE, async (msg) => {
+        const userQueue = msg.content.toString();
+        console.log(`consuming '${userQueue}'`);
+        const userQueueName = `${process.env.RABBITMQ_GATEWAY_CONTROLLER_QUEUE}_${userQueue}`;
+        console.log(`[x] Received '${userQueueName}', sending to ${RABBITMQ_LIVECHAT_QUEUE}`);
+        await this.sendTaskToWorkerQueue(userQueueName, RABBITMQ_LIVECHAT_QUEUE);
+      }, {
+        // automatic acknowledgment mode,
+        // see https://www.rabbitmq.com/confirms.html for details
+        noAck: true,
+      });
+      // let taskQueue = await this.consumeQueue(process.env.RABBITMQ_GATEWAY_CONTROLLER_QUEUE);
+      // let res = await this.sendTaskToWorkerQueue(`${process.env.RABBITMQ_GATEWAY_CONTROLLER_QUEUE}_${taskQueue}`, RABBITMQ_LIVECHAT_QUEUE);
     } catch (err) {
       console.log(err);
       throw new Error('Connection failed');
