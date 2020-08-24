@@ -86,7 +86,10 @@ reloadNamespace();
 module.exports.reloadNamespace = reloadNamespace;
 
 async function sendMessageToClient(nsSocket, namespace, msg) {
-  console.log(nsSocket.handshake)
+  console.log('nssocket handshake');
+  console.log(nsSocket.handshake);
+  console.log('msg');
+  console.log(msg);
   const fullMsg = {
     text: msg.text,
     time: Date.now(),
@@ -101,7 +104,7 @@ async function sendMessageToClient(nsSocket, namespace, msg) {
     type: 'message',
     platform: 'widget',
     sender_platform_id: 'agent_id',
-    session_id: '5f3635785f57c2c2cf02242c',
+    session_id: msg.room,
     abbr: process.env.ABBREVIATION,
   };
   try {

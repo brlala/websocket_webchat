@@ -57,7 +57,8 @@ function joinNs(endpoint) {
 function formSubmission(event) {
   event.preventDefault();
   const newMessage = document.querySelector('#user-message').value;
-  nsSocket.emit('newMessageToServer', { text: newMessage });
+  const roomName = document.querySelector('.curr-room-text').textContent;
+  nsSocket.emit('newMessageToServer', { text: newMessage, room: roomName });
 }
 
 function buildHtml(msg) {

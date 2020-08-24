@@ -12,6 +12,6 @@ const SessionMessage = new Schema({
   sender_platform_id: String,
   session_id: String,
   abbr: String,
-}, { collection: 'messages', versionKey: false });
+}, { collection: 'message', versionKey: false });
 
 module.exports = mongoose.model('SessionMessage', SessionMessage);
