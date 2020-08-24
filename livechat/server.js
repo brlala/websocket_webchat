@@ -3,6 +3,7 @@ require('dotenv').config();
 
 // Database
 const mongoose = require('mongoose');
+const { ObjectId } = require('mongoose').Types;
 const db = require('./database').initialize();
 
 // Models
@@ -108,7 +109,10 @@ async function sendMessageToClient(nsSocket, namespace, msg) {
   // } catch (e) {
   //   console.log(e);
   // }
-  await rabbitMq.publishMessage(data);
+  if (ObjectId.isValid(msg.room)) {
+    // only publish to queue if room is from valid users
+    await rabbitMq.publishMessage(data);
+  }
   // Send this message to all sockets that re in the room of this socket
   // console.log(nsSocket.rooms);
   // User will always be 2nd because first is default room
