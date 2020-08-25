@@ -44,11 +44,12 @@ class RabbitMq {
       // consume from worker queue, if it's a request, add a room, else, consume the queue
       await this.channel.consume(RABBITMQ_LIVECHAT_QUEUE, async (msg) => {
         const data = msg.content.toString();
-        console.log(`Received '${data}' from '${RABBITMQ_LIVECHAT_QUEUE}'`);
+        console.log(`Received '${payload}' from '${RABBITMQ_LIVECHAT_QUEUE}'`);
         if (data.startsWith(process.env.RABBITMQ_GATEWAY_CONTROLLER_QUEUE)) {
           await this.consumeUserQueue(data);
         } else {
-          addRequestRoom(data);
+          const payload = JSON.parse(data);
+          addRequestRoom(payload);
         }
       },
       {

@@ -51,9 +51,10 @@ function reloadNamespace() {
       // console.log(`${nsSocket.id} has join ${namespace.endpoint}`);
       // a socket has  connected to one of our chatgroup namespaces, send that ns group info back
       nsSocket.emit('nsRoomLoad', namespace.rooms);
-      nsSocket.on('joinRoom', async ({ roomToJoin, username }, numberOfUsersCallback) => {
+      nsSocket.on('joinRoom', async (payload, numberOfUsersCallback) => {
         // deal with history... once we have it
         console.log(nsSocket.rooms);
+        const { roomToJoin, username } = payload;
         const roomToLeave = Object.keys(nsSocket.rooms)[1];
         nsSocket.leave(roomToLeave);
         updateUsersInRoom(namespace, roomToLeave);
@@ -63,12 +64,14 @@ function reloadNamespace() {
         //   numberOfUsersCallback(clients.length);
         // });
         console.log('Users: ', users);
+        const nsRoom = namespace.rooms.find((room) => room.roomTitle === roomToJoin);
         if (!users.some((user) => user.userId === roomToJoin) && validateObjectId(roomToJoin)) {
           // only set the state and send first message if user does not exist in list
           console.log('setting join state for: ', roomToJoin);
           await changeUserChatState(roomToJoin, 'livechat');
           const user = new User(roomToJoin, 'no platform', 'connected');
           users.push(user);
+          console.log('Adding User');
           console.log(users);
           const data = {
             data: {
@@ -77,12 +80,13 @@ function reloadNamespace() {
             },
             type: 'livechat',
             session_id: roomToJoin,
+            abbr: process.env.ABBREVIATION,
+            platform: nsRoom.platform,
+            created_at: Date.now(),
+            created_by: username,
           };
           await rabbitMq.publishMessage(data);
         }
-
-        const nsRoom = namespace.rooms.find((room) => room.roomTitle === roomToJoin);
-        // console.log(nsRoom);
         nsSocket.emit('historyCatchUp', nsRoom.history);
         updateUsersInRoom(namespace, roomToJoin);
       });
@@ -92,11 +96,23 @@ function reloadNamespace() {
         console.log(roomIndex);
         namespaces[0].removeRoom(roomToRemove);
 
+        // remove user from connected state
+        for (let i = 0; i < users.length; i++) {
+          if (users[i].userId === roomToRemove) {
+            console.log(`Removing user ${roomToRemove}`);
+            users.splice(i, 1);
+            console.log(users);
+            break;
+          }
+        }
+
         // change user chat state
         const res = await changeUserChatState(roomToRemove, 'bot');
         console.log('finding', res);
       });
       nsSocket.on('newMessageToServer', async (msg) => {
+        const nsRoom = namespace.rooms.find((room) => room.roomTitle === msg.room);
+        msg.platform = nsRoom.platform;
         sendMessageToClient(nsSocket, namespace, msg);
       });
     }));
@@ -119,7 +135,7 @@ async function sendMessageToClient(nsSocket, namespace, msg) {
       text: msg.text,
     },
     type: 'message',
-    platform: 'widget',
+    platform: msg.platform,
     sender_platform_id: msg.username,
     session_id: msg.room,
     abbr: process.env.ABBREVIATION,
