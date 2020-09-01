@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const { Schema } = mongoose;
 
-const Session = new Schema({
+const SessionSchema = new Schema({
   _id: Schema.Types.ObjectId,
   last_active: Map,
   bot_id: Schema.Types.ObjectId,
@@ -15,4 +15,4 @@ const Session = new Schema({
   end_at: Date,
 }, { collection: 'session', versionKey: false });
 
-module.exports = mongoose.model('Session', Session);
+module.exports = mongoose.model('Session', SessionSchema);

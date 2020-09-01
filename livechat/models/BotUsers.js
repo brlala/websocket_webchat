@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const { Schema } = mongoose;
 
-const BotUser = new Schema({
+const BotUserSchema = new Schema({
   _id: Schema.Types.ObjectId,
   first_name: String,
   last_name: String,
@@ -24,4 +24,4 @@ const BotUser = new Schema({
   is_active: Boolean,
 }, { collection: 'bot_user', versionKey: false });
 
-module.exports = mongoose.model('BotUser', BotUser);
+module.exports = mongoose.model('BotUser', BotUserSchema);

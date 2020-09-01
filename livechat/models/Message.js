@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const { Schema } = mongoose;
 
-const SessionMessage = new Schema({
+const SessionMessageSchema = new Schema({
   data: {
     type: Map,
     of: String,
@@ -14,4 +14,4 @@ const SessionMessage = new Schema({
   abbr: String,
 }, { collection: 'message', versionKey: false });
 
-module.exports = mongoose.model('SessionMessage', SessionMessage);
+module.exports = mongoose.model('SessionMessage', SessionMessageSchema);
