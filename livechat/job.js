@@ -5,17 +5,20 @@ let { getIO } = require('./socketio');
 const namespaces = require('./data/namespaces');
 
 module.exports.handleMessage = function (msg) {
-  let io = getIO();
+  const io = getIO();
+  const receiver = msg.platform === 'widget' ? 'session_id' : 'sender_platform_id';
+
   const fullMsg = {
     text: msg.data.text,
     time: Date.now(),
-    username: msg.session_id,
+    username: msg[receiver],
     avatar: 'https://d1nhio0ox7pgb.cloudfront.net/_img/g_collection_png/standard/256x256/user.png',
   };
-  const userRoom = namespaces[0].rooms.find((room) => room.roomTitle === msg.session_id);
+  const userRoom = namespaces[0].rooms.find((room) => room.roomTitle === msg[receiver]);
   userRoom.addMessage(fullMsg);
 
-  io.of('/wiki').to(msg.session_id).emit('messageToClients', fullMsg);
+  io.of('/wiki').to(msg[receiver]).emit('messageToClients', fullMsg);
+  console.log(1);
 };
 
 module.exports.addRequestRoom = function (chatRequest) {
@@ -23,4 +26,8 @@ module.exports.addRequestRoom = function (chatRequest) {
   console.log(`Adding room ${uid}:${platform}`);
   const userRoom = new Room(uuidv4(), uid, 'Wiki', false, platform);
   namespaces[0].addRoom(userRoom);
+  const io = getIO();
+  namespaces.forEach((namespace) => {
+    io.of('/wiki').emit('nsRoomLoad', namespace.rooms);
+  });
 };
