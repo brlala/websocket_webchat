@@ -44,7 +44,7 @@ class RabbitMq {
       // consume from worker queue, if it's a request, add a room, else, consume the queue
       await this.channel.consume(RABBITMQ_LIVECHAT_QUEUE, async (msg) => {
         const data = msg.content.toString();
-        console.log(`Received '${payload}' from '${RABBITMQ_LIVECHAT_QUEUE}'`);
+        console.log(`Received '${data}' from '${RABBITMQ_LIVECHAT_QUEUE}'`);
         if (data.startsWith(process.env.RABBITMQ_GATEWAY_CONTROLLER_QUEUE)) {
           await this.consumeUserQueue(data);
         } else {
@@ -72,7 +72,7 @@ class RabbitMq {
       // let res = await this.sendTaskToWorkerQueue(`${process.env.RABBITMQ_GATEWAY_CONTROLLER_QUEUE}_${taskQueue}`, RABBITMQ_LIVECHAT_QUEUE);
     } catch (err) {
       console.log(err);
-      throw new Error('Connection failed');
+      throw new Error('RabbitMQ Connection failed');
     }
   }
 
@@ -120,7 +120,8 @@ class RabbitMq {
 
   async publishMessage(fullMessage) {
     console.log('publishing');
-    const queue = `${process.env.RABBITMQ_CONTROLLER_QUEUE}_${process.env.ABBREVIATION}_${fullMessage.session_id}`;
+    const receiver = fullMessage.platform === 'widget' ? 'session_id' : 'receiver_platform_id';
+    const queue = `${process.env.RABBITMQ_CONTROLLER_QUEUE}_${process.env.ABBREVIATION}_${fullMessage[receiver]}`;
     await this.sendDataToUserQueue(queue, fullMessage);
     await this.sendDataToControllerQueue(queue);
 
@@ -158,8 +159,11 @@ class RabbitMq {
     });
   }
 }
+
+const rabbitMq = new RabbitMq();
+
 module.exports = {
-  rabbitMq: new RabbitMq(),
+  rabbitMq,
   start(io) {
     io.on('connection', (socket) => {
       socket.on('message', (message) => {
