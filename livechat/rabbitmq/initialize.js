@@ -69,7 +69,7 @@ class RabbitMq {
         // see https://www.rabbitmq.com/confirms.html for details
         noAck: true,
       });
-      console.log('RabbitMQ Connection succeeded')
+      console.log('RabbitMQ Connection successful');
       // let taskQueue = await this.consumeQueue(process.env.RABBITMQ_GATEWAY_CONTROLLER_QUEUE);
       // let res = await this.sendTaskToWorkerQueue(`${process.env.RABBITMQ_GATEWAY_CONTROLLER_QUEUE}_${taskQueue}`, RABBITMQ_LIVECHAT_QUEUE);
     } catch (err) {
