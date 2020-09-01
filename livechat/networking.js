@@ -27,6 +27,7 @@ function getFormattedIpAddress() {
   const localIp = getLocalIp();
   return localIp ? localIp.replace(/\./g, '-') : 'ip_not_found';
 }
+
 module.exports = {
   getLocalIp,
   getFormattedIpAddress,

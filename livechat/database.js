@@ -39,7 +39,7 @@ module.exports.getDb = function () {
 
 module.exports.validateObjectId = function (idToCheck) {
   return idToCheck && ObjectId.isValid(idToCheck) && new ObjectId(idToCheck) == idToCheck ? idToCheck : null;
-}
+};
 
 exports.initialize = dbConnect;
 
