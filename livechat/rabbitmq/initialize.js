@@ -1,9 +1,9 @@
 const amqp = require('amqplib');
 const sleep = require('util').promisify(setTimeout);
+
+const { getBotConfig } = require('../globals');
 const { handleMessage, addRequestRoom } = require('../job');
 const { getFormattedIpAddress } = require('../networking');
-
-const url = process.env.RABBITMQ_SERVER;
 
 class RabbitMq {
   constructor() {
@@ -14,6 +14,8 @@ class RabbitMq {
 
   async connect() {
     try {
+      const botConfig = await getBotConfig();
+      const url = `amqp://${botConfig.rabbitmq.rabbitmq_uri}`;
       this.connection = await amqp.connect(url);
       this.channel = await this.connection.createChannel();
       this.channel.prefetch(1);
@@ -24,14 +26,16 @@ class RabbitMq {
         durable: true,
         expires: 60000,
       });
+      const RABBITMQ_GATEWAY_CONTROLLER_QUEUE = botConfig.rabbitmq.rabbitmq_gateway_to_livechat;
+      const RABBITMQ_CONTROLLER_QUEUE = botConfig.rabbitmq.rabbitmq_livechat_to_gateway;
 
       // gateway to livechat queue
-      await this.channel.assertQueue(process.env.RABBITMQ_GATEWAY_CONTROLLER_QUEUE, {
+      await this.channel.assertQueue(RABBITMQ_GATEWAY_CONTROLLER_QUEUE, {
         durable: true,
       });
 
       // controller queue
-      await this.channel.assertQueue(process.env.RABBITMQ_CONTROLLER_QUEUE, {
+      await this.channel.assertQueue(RABBITMQ_CONTROLLER_QUEUE, {
         durable: true,
       });
 
@@ -46,7 +50,7 @@ class RabbitMq {
       await this.channel.consume(RABBITMQ_LIVECHAT_QUEUE, async (msg) => {
         const data = msg.content.toString();
         console.log(`Received '${data}' from '${RABBITMQ_LIVECHAT_QUEUE}'`);
-        if (data.startsWith(process.env.RABBITMQ_GATEWAY_CONTROLLER_QUEUE)) {
+        if (data.startsWith(RABBITMQ_GATEWAY_CONTROLLER_QUEUE)) {
           await this.consumeUserQueue(data);
         } else {
           const payload = JSON.parse(data);
@@ -58,10 +62,10 @@ class RabbitMq {
       });
 
       // consume from task queue and queue it to worker queue
-      await this.channel.consume(process.env.RABBITMQ_GATEWAY_CONTROLLER_QUEUE, async (msg) => {
+      await this.channel.consume(RABBITMQ_GATEWAY_CONTROLLER_QUEUE, async (msg) => {
         const userQueue = msg.content.toString();
         console.log(`consuming '${userQueue}'`);
-        const userQueueName = `${process.env.RABBITMQ_GATEWAY_CONTROLLER_QUEUE}_${userQueue}`;
+        const userQueueName = `${RABBITMQ_GATEWAY_CONTROLLER_QUEUE}_${userQueue}`;
         console.log(`[x] Received '${userQueueName}', sending to ${RABBITMQ_LIVECHAT_QUEUE}`);
         await this.sendTaskToWorkerQueue(userQueueName, RABBITMQ_LIVECHAT_QUEUE);
       }, {
@@ -70,8 +74,6 @@ class RabbitMq {
         noAck: true,
       });
       console.log('RabbitMQ Connection successful');
-      // let taskQueue = await this.consumeQueue(process.env.RABBITMQ_GATEWAY_CONTROLLER_QUEUE);
-      // let res = await this.sendTaskToWorkerQueue(`${process.env.RABBITMQ_GATEWAY_CONTROLLER_QUEUE}_${taskQueue}`, RABBITMQ_LIVECHAT_QUEUE);
     } catch (err) {
       console.log(err);
       console.log('RabbitMQ Connection failed, attempting reconnect in 5 seconds');
@@ -114,7 +116,9 @@ class RabbitMq {
   }
 
   async sendDataToControllerQueue(data) {
-    const controllerQueue = process.env.RABBITMQ_CONTROLLER_QUEUE;
+    const botConfig = await getBotConfig();
+    const RABBITMQ_CONTROLLER_QUEUE = botConfig.rabbitmq.rabbitmq_livechat_to_gateway;
+    const controllerQueue = RABBITMQ_CONTROLLER_QUEUE;
     // controller queue
     const options = {
       durable: true,
@@ -123,9 +127,11 @@ class RabbitMq {
   }
 
   async publishMessage(fullMessage) {
+    const botConfig = await getBotConfig();
+    const RABBITMQ_CONTROLLER_QUEUE = botConfig.rabbitmq.rabbitmq_livechat_to_gateway;
     console.log('publishing');
     const receiver = fullMessage.platform === 'widget' ? 'session_id' : 'receiver_platform_id';
-    const queue = `${process.env.RABBITMQ_CONTROLLER_QUEUE}_${process.env.ABBREVIATION}_${fullMessage[receiver]}`;
+    const queue = `${RABBITMQ_CONTROLLER_QUEUE}_${process.env.ABBREVIATION}_${fullMessage[receiver]}`;
     await this.sendDataToUserQueue(queue, fullMessage);
     await this.sendDataToControllerQueue(queue);
 
