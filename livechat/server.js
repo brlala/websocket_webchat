@@ -1,4 +1,6 @@
 require('dotenv').config();
+// utils
+const jwt = require('jsonwebtoken');
 
 // Database
 const mongoose = require('mongoose');
@@ -30,8 +32,24 @@ const User = require('./classes/User');
 // variables to record user info
 let users = [];
 
+// setting up authentication middleware for socket-io
+io.use(async (socket, next) => {
+  try {
+    const { token } = socket.handshake.query;
+
+    // verify token
+    const payload = jwt.verify(token, process.env.SECRET);
+    socket.userId = payload.id;
+    next();
+    // eslint-disable-next-line no-empty
+  } catch (err) {
+    // socket.emit('authentication-error', 'The token provided is invalid.');
+    console.log(`Invalid authentication: ${socket.handshake?.query?.token}`);
+  }
+});
 // main namespace connection
 io.on('connection', (socket) => {
+  console.log(`Connected: ${socket.userId}`);
   // console.log(socket.handshake);
   // build an array to send back img and endpoint of each NS
   const nsData = namespaces.map((ns) => ({
@@ -41,6 +59,9 @@ io.on('connection', (socket) => {
   // console.log(nsData);
   // send ns data back to client, use socket NOT io because we just want to send it to this client
   socket.emit('nsList', nsData);
+  socket.on('disconnect', () => {
+    console.log(`Disconnected: ${socket.userId}`);
+  });
 });
 
 namespaces.forEach((namespace) => {
