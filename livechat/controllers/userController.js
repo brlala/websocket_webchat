@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const jwt = require('jsonwebtoken');
 const LivechatUser = require('../models/LivechatUser');
 
 const { hashPassword, verifyPassword } = require('../password');
@@ -10,7 +11,10 @@ function validateEmail(email) {
 }
 
 exports.register = async (req, res) => {
-  const { firstName, lastName, email, password } = req.body;
+  const {
+    firstName, lastName, email, password,
+  } = req.body;
+
   if (!validateEmail(email)) throw 'Email is invalid.';
   if (password.length < 6) throw 'Password must be atleast 6 characters long.';
 
@@ -64,8 +68,19 @@ exports.login = async (req, res) => {
     if (correct) {
       user.last_active = Date.now();
       await user.save();
+
+      const token = await jwt.sign({
+        id: user._id,
+        firstName: user.first_name,
+        lastName: user.last_name,
+        email,
+      }, process.env.SECRET, {
+        expiresIn: process.env.JWT_EXPIRES_IN,
+      });
+
       res.json({
         message: 'User logged in successfully!',
+        token,
       });
     } else {
       user.invalid_login_attempts += 1;
