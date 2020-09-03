@@ -15,6 +15,7 @@ exports.register = async (req, res) => {
     firstName, lastName, email, password,
   } = req.body;
 
+  if (!firstName || !lastName || !email || !password) throw 'Missing required fields: firstName, lastName, email, password';
   if (!validateEmail(email)) throw 'Email is invalid.';
   if (password.length < 6) throw 'Password must be atleast 6 characters long.';
 
