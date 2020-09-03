@@ -37,7 +37,7 @@ exports.register = async (req, res) => {
       is_active: true,
       first_name: firstName,
       last_name: lastName,
-      username,
+      username: email,
       email,
       password: hashString,
       portal_user_group_id: 'ffffffffffffffffffffffff',
