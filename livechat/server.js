@@ -18,6 +18,7 @@ const io = require('./socketio').initialize(expressServer);
 const SessionMessage = require('./models/Message');
 const Session = require('./models/Session');
 const BotUser = require('./models/BotUsers');
+const LivechatUser = require('./models/LivechatUser');
 
 // Queue
 const { rabbitMq } = require('./rabbitmq/initialize');

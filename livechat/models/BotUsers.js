@@ -3,7 +3,6 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 const BotUserSchema = new Schema({
-  _id: Schema.Types.ObjectId,
   first_name: String,
   last_name: String,
   email: String,

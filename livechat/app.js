@@ -6,6 +6,9 @@ app.use(express.json()); // for parsing application/json
 app.use(express.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
 app.use(express.static(`${__dirname}/public`));
 
+// Bringing in the routes
+app.use('/user', require('./routes/user'));
+
 // Setup Error Handlers
 const errorHandlers = require('./handlers/errorHandlers');
 

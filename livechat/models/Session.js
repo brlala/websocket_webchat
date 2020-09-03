@@ -3,7 +3,6 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 const SessionSchema = new Schema({
-  _id: Schema.Types.ObjectId,
   last_active: Map,
   bot_id: Schema.Types.ObjectId,
   platform: String,
