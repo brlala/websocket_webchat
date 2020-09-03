@@ -3,6 +3,7 @@ const username = prompt('What is your username?');
 const socket = io('http://localhost:9000', {
   query: {
     username,
+    token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVmNTA3NzA2ZmY2YjljNjg5ODkwMDllNSIsImZpcnN0TmFtZSI6InRlc3QiLCJsYXN0TmFtZSI6InVzZXIiLCJlbWFpbCI6ImFzZEBhc2QuY29tIiwiaWF0IjoxNTk5MTIyNzcwLCJleHAiOjE2MDY4OTg3NzB9.RjJFk7tN05nw2CH7CWkcdBjG0CCLnjUsF-BF_WJvZOQ',
   },
 });
 socket.username = username;
