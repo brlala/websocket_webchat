@@ -31,7 +31,13 @@ const BotSchema = new Schema({
   chatbot: Map,
   nlp: Map,
   portal: Map,
-  livechat: Map,
+  livechat: {
+    livechat_uri: String,
+    livechat_enabled: Boolean,
+    start_time: String,
+    end_time: String,
+    history_message_count: Number,
+  },
   monitor: Map,
   is_active: Boolean,
 }, { collection: 'bot', versionKey: false });

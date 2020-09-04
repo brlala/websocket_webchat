@@ -12,6 +12,7 @@ module.exports.handleMessage = function (msg) {
     text: msg.data.text,
     time: Date.now(),
     username: msg[receiver],
+    handler: 'user',
     avatar: 'https://d1nhio0ox7pgb.cloudfront.net/_img/g_collection_png/standard/256x256/user.png',
   };
   const userRoom = namespaces[0].rooms.find((room) => room.roomTitle === msg[receiver]);

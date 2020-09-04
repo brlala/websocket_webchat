@@ -17,7 +17,8 @@ const expressServer = app.listen(PORT, () => {
 const io = require('./socketio').initialize(expressServer);
 
 // Models
-const SessionMessage = require('./models/Message');
+const SessionMessage = require('./models/SessionMessage');
+const Message = require('./models/Message');
 const Session = require('./models/Session');
 const BotUser = require('./models/BotUsers');
 const LivechatUser = require('./models/LivechatUser');
@@ -28,6 +29,7 @@ const { rabbitMq } = require('./rabbitmq/initialize');
 // Application Logic
 const namespaces = require('./data/namespaces');
 const User = require('./classes/User');
+const { getBotConfig } = require('./globals');
 
 // variables to record user info
 let users = [];
@@ -66,7 +68,7 @@ io.on('connection', (socket) => {
 
 namespaces.forEach((namespace) => {
   console.log('reloading namespace in ', namespace);
-  io.of(namespace.endpoint).on('connection', ((nsSocket) => {
+  io.of(namespace.endpoint).on('connection', (async (nsSocket) => {
     // const { username } = nsSocket.handshake.query;
 
     // console.log(`${nsSocket.id} has join ${namespace.endpoint}`);
@@ -110,7 +112,32 @@ namespaces.forEach((namespace) => {
           created_by: username,
         };
         await rabbitMq.publishMessage(data);
+
+        // loading the amount of messages
+        const botConfig = await getBotConfig();
+        console.log(botConfig.livechat.history_message_count);
+        let messages = await Message.find()
+          .sort({ _id: -1 })
+          .limit(botConfig.livechat.history_message_count)
+          .or([
+            { session_id: roomToJoin },
+            { sender_id: roomToJoin },
+            { receiver_id: roomToJoin },
+          ])
+          .exec();
+        // console.log('MESSAGES');
+        messages.slice().reverse().forEach((msg) => {
+          const fullMsg = {
+            text: msg.data.text,
+            time: msg.created_at,
+            username: msg.handler ? 'bot' : roomToJoin,
+            handler: msg.handler ? msg.handler : 'user',
+            avatar: 'https://d1nhio0ox7pgb.cloudfront.net/_img/g_collection_png/standard/256x256/user.png',
+          };
+          nsRoom.addMessage(fullMsg);
+        });
       }
+
       nsSocket.emit('historyCatchUp', nsRoom.history);
       io.of('/wiki').emit('nsRoomLoad', namespace.rooms);
       updateUsersInRoom(namespace, roomToJoin);
@@ -169,6 +196,7 @@ async function sendMessageToClient(nsSocket, namespace, msg) {
     text: msg.text,
     time: Date.now(),
     username: msg.username,
+    handler: 'bot',
     avatar: 'https://d1nhio0ox7pgb.cloudfront.net/_img/g_collection_png/standard/256x256/user.png',
   };
   console.log(fullMsg);
