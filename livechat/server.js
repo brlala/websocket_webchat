@@ -196,7 +196,7 @@ async function sendMessageToClient(nsSocket, namespace, msg) {
     text: msg.text,
     time: Date.now(),
     username: msg.username,
-    handler: 'bot',
+    handler: 'agent',
     avatar: 'https://d1nhio0ox7pgb.cloudfront.net/_img/g_collection_png/standard/256x256/user.png',
   };
   console.log(fullMsg);
