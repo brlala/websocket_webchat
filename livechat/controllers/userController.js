@@ -40,7 +40,7 @@ exports.register = async (req, res) => {
       username: email,
       email,
       password: hashString,
-      portal_user_group_id: 'ffffffffffffffffffffffff',
+      livechat_user_group_id: 'ffffffffffffffffffffffff',
       last_active: Date.now(),
       force_change_password: false,
       password_history: [],

@@ -13,7 +13,7 @@ const LivechatUserSchema = new Schema({
   username: String,
   email: String,
   password: String,
-  portal_user_group_id: Schema.Types.ObjectId,
+  livechat_user_group_id: Schema.Types.ObjectId,
   last_active: Date,
   force_change_password: Boolean,
   password_history: [String],
