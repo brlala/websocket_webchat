@@ -9,6 +9,7 @@ app.use(express.static(`${__dirname}/public`));
 // Bringing in the routes
 app.use('/user', require('./routes/user'));
 app.use('/test', require('./routes/test'));
+app.use('/canned-response', require('./routes/cannedResponse'));
 
 // Setup Error Handlers
 const errorHandlers = require('./handlers/errorHandlers');
