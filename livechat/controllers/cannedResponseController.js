@@ -1,4 +1,4 @@
-const { body, validationResult } = require('express-validator');
+const { validationResult } = require('express-validator');
 const LivechatCannedResponse = require('../models/LivechatCannedResponse');
 
 exports.create = async (req, res) => {
@@ -25,6 +25,7 @@ exports.create = async (req, res) => {
     name,
     text: { [language]: text },
     is_active: true,
+    selected: false,
     created_at: Date.now(),
     updated_at: Date.now(),
   });

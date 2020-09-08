@@ -13,4 +13,5 @@ rules: {
   no-undef: off,
   no-console: off,
   max-len: off,
+  consistent-return: off
 }
