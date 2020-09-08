@@ -22,6 +22,8 @@ function dbConnect() {
     .catch((err) => {
       console.log('MongoDB connection error', err);
     });
+  // deprecation warning https://mongoosejs.com/docs/deprecations.html#findandmodify
+  mongoose.set('useFindAndModify', false);
 
   // Set up database event handlers:
   const db = mongoose.connection;
