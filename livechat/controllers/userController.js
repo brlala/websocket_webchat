@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 const LivechatUser = require('../models/LivechatUser');
+const LivechatUserGroup = require('../models/LivechatUserGroup');
 
 const { hashPassword, verifyPassword } = require('../password');
 
@@ -22,6 +23,7 @@ exports.register = async (req, res) => {
   const userExists = await LivechatUser.findOne({ email });
   if (userExists) throw 'User with same email already exits.';
 
+  const defaultGroup = await LivechatUserGroup.findOne({ name: 'default' });
   hashPassword(password, async (err, hash) => {
     if (err) {
       throw 'Password hashing error';
@@ -40,7 +42,7 @@ exports.register = async (req, res) => {
       username: email,
       email,
       password: hashString,
-      livechat_user_group_id: 'ffffffffffffffffffffffff',
+      livechat_user_group_id: defaultGroup._id,
       last_active: Date.now(),
       force_change_password: false,
       password_history: [],
