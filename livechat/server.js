@@ -21,6 +21,7 @@ const SessionMessage = require('./models/SessionMessage');
 const Message = require('./models/Message');
 const Session = require('./models/Session');
 const BotUser = require('./models/BotUsers');
+const LivechatSession = require('./models/LivechatSession');
 
 // Queue
 const { rabbitMq } = require('./rabbitmq/initialize');
@@ -92,6 +93,7 @@ namespaces.forEach((namespace) => {
         // only set the state and send first message if user does not exist in list
         console.log('setting join state for: ', roomToJoin);
         await changeUserChatState(roomToJoin, nsRoom.platform, 'livechat');
+        await startLiveSession(nsSocket.userId, roomToJoin, nsRoom.platform, true);
         const user = new User(roomToJoin, nsRoom.platform, 'connected');
         users.push(user);
         console.log('Adding User');
@@ -174,6 +176,7 @@ namespaces.forEach((namespace) => {
         created_at: Date.now(),
         created_by: username,
       };
+      await endLiveSession(nsSocket.userId, roomToJoin, nsRoom.platform, true);
       await rabbitMq.publishMessage(data);
 
       // change user chat state
@@ -266,4 +269,44 @@ function changeUserChatState(userId, platform, state) {
     // message.save();
     // resolve('added');
   });
+}
+
+function changeLiveSessionState(agentId, userId, platform, livechatOngoing) {
+  // await changeLiveSessionState(nsSocket.userId, roomToJoin, nsRoom.platform, true);
+  console.log(`searching for ${userId}`);
+  const keyField = platform === 'widget' ? 'session_id' : 'bot_user_id';
+  if (livechatOngoing) {
+    return new Promise((resolve, reject) => {
+      const lsSession = new LivechatSession({
+        livechat_agent_id: agentId,
+        bot_user_id: null,
+        session_id: null,
+        start_datetime: Date.now(),
+        end_datetime: null,
+        is_active: true,
+      });
+      lsSession[keyField] = userId;
+      const queryRes = lsSession.save();
+      resolve(`Session saved ${queryRes}`);
+    });
+  }
+  return new Promise((resolve, reject) => {
+    const filter = { livechat_agent_id: agentId, [keyField]: userId, is_active: true };
+    const queryRes = LivechatSession.findOneAndUpdate(filter, { end_datetime: Date.now(), is_active: false },
+      {
+        upsert: true,
+        sort: { created: -1 },
+      });
+    resolve(`Session saved ${queryRes}`);
+  });
+}
+
+function startLiveSession(agentId, userId, platform) {
+  console.log(`Starting Live Session for ${userId}`);
+  return changeLiveSessionState(agentId, userId, platform, true);
+}
+
+function endLiveSession(agentId, userId, platform) {
+  console.log(`Ending Live Session for ${userId}`);
+  return changeLiveSessionState(agentId, userId, platform, false);
 }
