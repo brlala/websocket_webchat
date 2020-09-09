@@ -1,4 +1,5 @@
 const express = require('express');
+const cors = require('cors');
 
 // Main
 const app = express();
@@ -7,7 +8,15 @@ app.use(express.urlencoded({ extended: true })); // for parsing application/x-ww
 app.use(express.static(`${__dirname}/public`));
 
 // Setup cross origin
-app.use(require('cors')());
+if (process.env.ENV === 'DEVELOPMENT') {
+  app.use(cors());
+} else {
+  let corsOptions = {
+    origin: process.env.ORIGIN,
+    optionsSuccessStatus: 200, // some legacy browsers (IE11, various SmartTVs) choke on 204
+  };
+  app.use(cors(corsOptions));
+}
 
 // Bringing in the routes
 app.use('/user', require('./routes/user'));
