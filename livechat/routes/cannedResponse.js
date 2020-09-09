@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const { body, validationResult } = require('express-validator');
+const { body } = require('express-validator');
 const { catchErrors } = require('../handlers/errorHandlers');
 const cannedResponseController = require('../controllers/cannedResponseController');
 

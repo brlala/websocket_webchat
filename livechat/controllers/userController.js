@@ -1,24 +1,20 @@
 const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
+const { validationResult } = require('express-validator');
 const LivechatUser = require('../models/LivechatUser');
 const LivechatUserGroup = require('../models/LivechatUserGroup');
 
 const { hashPassword, verifyPassword } = require('../password');
 
-function validateEmail(email) {
-  const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-  return re.test(String(email)
-    .toLowerCase());
-}
-
 exports.register = async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
   const {
     firstName, lastName, email, password,
   } = req.body;
-
-  if (!firstName || !lastName || !email || !password) throw 'Missing required fields: firstName, lastName, email, password';
-  if (!validateEmail(email)) throw 'Email is invalid.';
-  if (password.length < 6) throw 'Password must be atleast 6 characters long.';
 
   const userExists = await LivechatUser.findOne({ email });
   if (userExists) throw 'User with same email already exits.';
@@ -59,6 +55,11 @@ exports.register = async (req, res) => {
 };
 
 exports.login = async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
   const { email, password } = req.body;
   const user = await LivechatUser.findOne({ email });
 
