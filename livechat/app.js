@@ -6,6 +6,9 @@ app.use(express.json()); // for parsing application/json
 app.use(express.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
 app.use(express.static(`${__dirname}/public`));
 
+// Setup cross origin
+app.use(require('cors')());
+
 // Bringing in the routes
 app.use('/user', require('./routes/user'));
 app.use('/test', require('./routes/test'));
