@@ -1,9 +1,9 @@
-function hasRole(role) {
+function hasPermission(permission) {
   return (req, res, next) => {
-    if (req.payload.permissions.includes(role)) {
+    if (req.payload.permissions.includes(permission)) {
       next();
     } else res.status(401).json({ message: 'You do not have permission to access this API' });
   };
 }
 
-module.exports = hasRole;
+module.exports = hasPermission;
