@@ -1,4 +1,4 @@
-const router = require('express').Router();
+const router = require('express').Router({ mergeParams: true });
 const { body } = require('express-validator');
 const { catchErrors } = require('../handlers/errorHandlers');
 const cannedResponseController = require('../controllers/cannedResponseController');

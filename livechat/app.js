@@ -19,9 +19,9 @@ if (process.env.ENV === 'DEVELOPMENT') {
 }
 
 // Bringing in the routes
-app.use('/user', require('./routes/user'));
-app.use('/test', require('./routes/test'));
-app.use('/canned-response', require('./routes/cannedResponse'));
+app.use('/:abbr/user', require('./routes/user'));
+app.use('/:abbr/test', require('./routes/test'));
+app.use('/:abbr/canned-response', require('./routes/cannedResponse'));
 
 // Setup Error Handlers
 const errorHandlers = require('./handlers/errorHandlers');
