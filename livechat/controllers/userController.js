@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
 const LivechatUser = require('../models/LivechatUser');
 const LivechatUserGroup = require('../models/LivechatUserGroup');
+const LivechatAccessControl = require('../models/LivechatAccessControl');
 
 const { hashPassword, verifyPassword } = require('../password');
 
@@ -73,11 +74,30 @@ exports.login = async (req, res) => {
       user.last_active = Date.now();
       await user.save();
 
+      // for Permissions
+      const userGroup = await LivechatUserGroup.findOne({ _id: user.livechat_user_group_id });
+      const pipeline = [
+        { $match: { _id: { $in: userGroup.access_control_ids.map((o) => mongoose.Types.ObjectId(o)) } } },
+        { $group: { _id: null, permissions: { $addToSet: '$name' } } },
+      ];
+      // const query = {
+      //   _id: {
+      //     $in: userGroup.access_control_ids.map((o) => mongoose.Types.ObjectId(o)),
+      //   },
+      // };
+      const cursor = await LivechatAccessControl.aggregate(pipeline);
+      let permissions;
+      cursor.forEach((doc) => {
+        permissions = doc.permissions;
+      }, (err) => {
+        permissions = [];
+      });
       const token = await jwt.sign({
         id: user._id,
         firstName: user.first_name,
         lastName: user.last_name,
         email,
+        permissions,
       }, process.env.SECRET, {
         expiresIn: process.env.JWT_EXPIRES_IN,
       });

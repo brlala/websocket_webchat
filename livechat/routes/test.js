@@ -3,7 +3,8 @@ const { catchErrors } = require('../handlers/errorHandlers');
 const testController = require('../controllers/testController');
 
 const auth = require('../middlewares/auth');
+const hasRole = require('../middlewares/roleAuth');
 
-router.post('/', auth, catchErrors(testController.test));
+router.post('/', auth, hasRole('delete_canned_response'), catchErrors(testController.test));
 
 module.exports = router;

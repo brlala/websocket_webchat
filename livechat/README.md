@@ -25,8 +25,10 @@ Features:
 5. Authenticate require fields using authentication middleware
 5. Clean and modular code, DRY Principle and SOLID principle (adapted from the code Clean Code)
 6. Object-Oriented programming
+7. Role based authentication middleware
 
 Project Requirements:
 1. Permission Group for different users
 2. Load Messages upon entering
 3. Canned Response for Agents to customize
+7. Role based authentication middleware
