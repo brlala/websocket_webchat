@@ -1,11 +1,13 @@
 const express = require('express');
 const cors = require('cors');
+const morgan = require('morgan');
 
 // Main
 const app = express();
 app.use(express.json()); // for parsing application/json
 app.use(express.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
-app.use(express.static(`${__dirname}/public`));
+app.use(express.static(`${__dirname}/public`)); // for serving assets
+app.use(morgan('combined')); // for logging HTTP API request
 
 // Setup cross origin
 if (process.env.ENV === 'DEVELOPMENT') {
