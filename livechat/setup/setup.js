@@ -1,11 +1,12 @@
 const { MongoClient, ObjectID } = require('mongodb');
 const fs = require('fs');
-
+require('dotenv').config();
 // Replace the uri string with your MongoDB deployment's connection string.
 const options = { useUnifiedTopology: true };
-const uri = 'mongodb://root:password@localhost:27017/?serverSelectionTimeoutMS=5000&connectTimeoutMS=10000&authSource=admin&authMechanism=SCRAM-SHA-256&3t.uriVersion=3&3t.connection.name=Local+LiveChat';
+const mongoUrl = `mongodb://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@${process.env.DB_SERVER}:${process.env.DB_PORT}/${process.env.DB_AUTH_DATABASE}`;
+console.log(mongoUrl);
 
-const client = new MongoClient(uri, options);
+const client = new MongoClient(mongoUrl, options);
 
 async function addCannedResponses(database) {
   const collection = database.collection('livechat_canned_response');
