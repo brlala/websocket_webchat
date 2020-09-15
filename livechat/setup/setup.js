@@ -87,7 +87,7 @@ async function run() {
   try {
     await client.connect();
 
-    const database = client.db('sample_mflix');
+    const database = client.db(process.env.DB_DATABASE);
     await addCannedResponses(database);
     await addAccessControl(database);
     await addAgentGroup(database);
