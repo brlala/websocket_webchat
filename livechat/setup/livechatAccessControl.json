@@ -1,0 +1,29 @@
+{
+  "responses": [
+    {
+      "_id" : "5f5702ba220d70026eb7b61f",
+      "name" : "create_canned_response",
+      "category" : "Canned Response",
+      "method" : "POST"
+    },
+    {
+      "_id" : "5f5702d8220d70026eb7b624",
+      "name" : "read_canned_response",
+      "category" : "Canned Response",
+      "method" : "GET"
+    },
+    {
+      "_id" : "5f5702e9220d70026eb7b625",
+      "name" : "edit_canned_response",
+      "category" : "Canned Response",
+      "method" : "PUT"
+    },
+    {
+      "_id" : "5f5702f1220d70026eb7b626",
+      "name" : "delete_canned_response",
+      "category" : "Canned Response",
+      "method" : "DELETE"
+    }
+
+  ]
+}

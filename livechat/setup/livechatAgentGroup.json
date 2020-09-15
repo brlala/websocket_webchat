@@ -1,0 +1,14 @@
+{
+  "responses": [
+    {
+      "_id" : "5f57035f220d70026eb7b63d",
+      "name" : "default",
+      "access_control_ids" : [
+
+      ],
+      "is_active" : true,
+      "created_by" : null,
+      "updated_by" : null
+    }
+  ]
+}

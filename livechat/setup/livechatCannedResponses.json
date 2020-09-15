@@ -1,0 +1,22 @@
+{
+  "responses": [
+    {
+      "_id": "5f5b3ad6dfba31427017bc65",
+      "user": "5f583e48e7e62e5ca704c0f4",
+      "name": "hi",
+      "text": {
+        "EN": "hi"
+      },
+      "is_active": true
+    },
+    {
+      "_id": "5f5b3da2732f95478ab43b98",
+      "user": "5f583e48e7e62e5ca704c0f4",
+      "name": "just a test",
+      "text": {
+        "EN": "hey"
+      },
+      "is_active": true
+    }
+  ]
+}

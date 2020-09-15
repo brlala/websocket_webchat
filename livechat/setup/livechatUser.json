@@ -1,0 +1,25 @@
+{
+  "responses": [
+    {
+      "_id" : "5f50df505f2ed216ffc40e4b",
+      "password_history" : [
+
+      ],
+      "created_by" : null,
+      "updated_by" : null,
+      "is_active" : true,
+      "first_name" : "User",
+      "last_name" : "Pand.ai",
+      "username" : "user@pand.ai",
+      "email" : "user@pand.ai",
+      "password" : "00000010000249f060ba0bc536395b4944ce7e21d0d44a360ec7e25ba6d6ec561cb275fdb8ef60e133059c7f6e99b17b938eed7d2cf23358",
+      "livechat_agent_group_id" : "5f57035f220d70026eb7b63d",
+      "last_active" : null,
+      "force_change_password" : false,
+      "invalid_login_attempts" : 0,
+      "is_locked" : false,
+      "last_password_change" : null,
+      "refresh_token_jti" : ""
+    }
+  ]
+}
