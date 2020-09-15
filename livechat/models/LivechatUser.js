@@ -6,7 +6,7 @@ const LivechatUserSchema = new Schema({
   created_at: Date,
   created_by: Schema.Types.ObjectId,
   updated_at: Date,
-  updated_by: Date,
+  updated_by: Schema.Types.ObjectId,
   is_active: Boolean,
   first_name: String,
   last_name: String,
