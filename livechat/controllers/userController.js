@@ -32,7 +32,7 @@ exports.register = async (req, res) => {
       created_at: Date.now(),
       created_by: 'ffffffffffffffffffffffff',
       updated_at: Date.now(),
-      updated_by: Date.now(),
+      updated_by: null,
       is_active: true,
       first_name: firstName,
       last_name: lastName,
