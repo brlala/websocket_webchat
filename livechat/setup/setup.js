@@ -16,8 +16,8 @@ async function addCannedResponses(database) {
     let doc = { ...obj.responses[i] };
     doc._id = ObjectID(obj.responses[i]._id);
     doc.user = ObjectID(obj.responses[i].user);
-    doc.created_at = new Date(Date.now());
-    doc.updated_at = new Date(Date.now());
+    doc.created_at = new Date();
+    doc.updated_at = new Date();
     const result = await collection.replaceOne({ _id: doc._id }, doc, { upsert: true });
 
     console.log(
@@ -55,8 +55,8 @@ async function addAgentGroup(database) {
     let doc = { ...obj.responses[i] };
     doc._id = new ObjectID(obj.responses[i]._id);
     doc.access_control_ids = accessArray;
-    doc.created_at = new Date(Date.now());
-    doc.updated_at = new Date(Date.now());
+    doc.created_at = new Date();
+    doc.updated_at = new Date();
     const result = await collection.replaceOne({ _id: doc._id }, doc, { upsert: true });
 
     console.log(
@@ -72,8 +72,8 @@ async function addDefaultUser(database) {
   for (let i = 0; i < obj.responses.length; i++) {
     let doc = { ...obj.responses[i] };
     doc._id = new ObjectID(obj.responses[i]._id);
-    doc.created_at = new Date(Date.now());
-    doc.updated_at = new Date(Date.now());
+    doc.created_at = new Date();
+    doc.updated_at = new Date();
     doc.livechat_agent_group_id = new ObjectID(obj.responses[i].livechat_agent_group_id);
     const result = await collection.replaceOne({ _id: doc._id }, doc, { upsert: true });
 
