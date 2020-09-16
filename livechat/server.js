@@ -29,6 +29,7 @@ const { rabbitMq } = require('./rabbitmq/initialize');
 // Application Logic
 const namespaces = require('./data/namespaces');
 const User = require('./classes/User');
+const { uploadFile } = require('./uploader');
 const { getBotConfig } = require('./globals');
 
 // variables to record user info
@@ -42,6 +43,8 @@ io.use(async (socket, next) => {
     // verify token
     const payload = jwt.verify(token, process.env.SECRET);
     socket.userId = payload.id;
+    socket.payload = payload;
+    console.log('hey');
     next();
     // eslint-disable-next-line no-empty
   } catch (err) {
@@ -51,7 +54,7 @@ io.use(async (socket, next) => {
 });
 // main namespace connection
 io.on('connection', (socket) => {
-  console.log(`Connected: ${socket.userId}`);
+  console.log(`Connected: ${socket.payload.email}`);
   // console.log(socket.handshake);
   // build an array to send back img and endpoint of each NS
   const nsData = namespaces.map((ns) => ({
@@ -62,12 +65,12 @@ io.on('connection', (socket) => {
   // send ns data back to client, use socket NOT io because we just want to send it to this client
   socket.emit('nsList', nsData);
   socket.on('disconnect', () => {
-    console.log(`Disconnected: ${socket.userId}`);
+    console.log(`Disconnected: ${socket.payload.email}`);
   });
 });
 
 namespaces.forEach((namespace) => {
-  console.log('reloading namespace in ', namespace);
+  // console.log('reloading namespace in ', namespace);
   io.of(namespace.endpoint).on('connection', (async (nsSocket) => {
     // const { username } = nsSocket.handshake.query;
 
@@ -76,9 +79,9 @@ namespaces.forEach((namespace) => {
     nsSocket.emit('nsRoomLoad', namespace.rooms);
     nsSocket.on('joinRoom', async (payload, numberOfUsersCallback) => {
       console.log(`[x] Received Event: joinRoom, Payload: ${JSON.stringify(payload)}`);
-      // deal with history... once we have it
-      console.log(nsSocket.rooms);
-      const { roomToJoin, username } = payload;
+      // // deal with history... once we have it
+      // console.log(nsSocket.rooms);
+      const { roomToJoin, username, id } = payload;
       const roomToLeave = Object.keys(nsSocket.rooms)[1];
       nsSocket.leave(roomToLeave);
       updateUsersInRoom(namespace, roomToLeave);
@@ -93,7 +96,7 @@ namespaces.forEach((namespace) => {
         // only set the state and send first message if user does not exist in list
         console.log('setting join state for: ', roomToJoin);
         await changeUserChatState(roomToJoin, nsRoom.platform, 'livechat');
-        await startLiveSession(nsSocket.userId, roomToJoin, nsRoom.platform, true);
+        await startLiveSession(id, roomToJoin, nsRoom.platform, true);
         const user = new User(roomToJoin, nsRoom.platform, 'connected');
         users.push(user);
         console.log('Adding User');
@@ -131,10 +134,11 @@ namespaces.forEach((namespace) => {
           const fullMsg = {
             text: msg.data.text,
             time: msg.created_at,
-            username: msg.handler ? 'bot' : roomToJoin,
-            handler: msg.handler ? msg.handler : 'user',
+            username: msg.handler ? roomToJoin : 'bot',
+            handler: msg.handler ? 'user' : 'bot',
             avatar: 'https://d1nhio0ox7pgb.cloudfront.net/_img/g_collection_png/standard/256x256/user.png',
           };
+          console.log(fullMsg);
           nsRoom.addMessage(fullMsg);
         });
       }
@@ -145,8 +149,10 @@ namespaces.forEach((namespace) => {
     });
     nsSocket.on('removeRoom', async (payload) => {
       console.log(`[x] Received Event: removeRoom, Payload: ${JSON.stringify(payload)}`);
+      console.log(nsSocket.query);
+      console.log({ payload });
       // deal with history... once we have it
-      const { username, roomToRemove } = payload;
+      const { username, roomToRemove, id } = payload;
       const nsRoom = namespace.rooms.find((room) => room.roomTitle === roomToRemove);
       console.log(`Found room ${nsRoom}`);
       const { platform } = nsRoom;
@@ -176,7 +182,18 @@ namespaces.forEach((namespace) => {
         created_at: Date.now(),
         created_by: username,
       };
-      await endLiveSession(nsSocket.userId, roomToJoin, nsRoom.platform, true);
+
+      // ending livesession
+      const keyField = platform === 'widget' ? 'session_id' : 'bot_user_id';
+      const filter = { livechat_agent_id: id, [keyField]: roomToRemove, is_active: true };
+      const queryRes = await LivechatSession.findOneAndUpdate(filter, { end_datetime: Date.now() },
+        {
+          upsert: true,
+          sort: { created: -1 },
+        });
+      console.log({ queryRes });
+
+      // await endLiveSession(id, roomToRemove, nsRoom.platform);
       await rabbitMq.publishMessage(data);
 
       // change user chat state
@@ -193,14 +210,27 @@ namespaces.forEach((namespace) => {
   // console.log(namespace)
 });
 
-async function sendMessageToClient(nsSocket, namespace, msg) {
-  const fullMsg = {
-    text: msg.text,
+async function formatMessage(msg) {
+  let formattedMessage = {
     time: Date.now(),
     username: msg.username,
+    type: msg.type,
     handler: 'agent',
     avatar: 'https://d1nhio0ox7pgb.cloudfront.net/_img/g_collection_png/standard/256x256/user.png',
+    data: {},
   };
+  if (msg.type === 'text') {
+    formattedMessage.data.text = msg.data.text;
+  } else if (msg.type === 'image') {
+    formattedMessage.data.url = await uploadFile(msg.data.b64, msg.data.mimetype, '', msg.data.filename);
+  } else {
+    console.log(`Type ${msg.type} not supported`);
+  }
+  return formattedMessage;
+}
+
+async function sendMessageToClient(nsSocket, namespace, msg) {
+  const fullMsg = formatMessage(msg);
   console.log(fullMsg);
   const receiver = msg.platform === 'widget' ? 'session_id' : 'receiver_platform_id';
   const data = {
@@ -292,11 +322,20 @@ function changeLiveSessionState(agentId, userId, platform, livechatOngoing) {
   }
   return new Promise((resolve, reject) => {
     const filter = { livechat_agent_id: agentId, [keyField]: userId, is_active: true };
-    const queryRes = LivechatSession.findOneAndUpdate(filter, { end_datetime: Date.now(), is_active: false },
-      {
-        upsert: true,
-        sort: { created: -1 },
-      });
+    console.log({ filter });
+    // const queryRes = LivechatSession.findOneAndUpdate(filter, { end_datetime: Date.now(), is_active: false },
+    //   {
+    //     upsert: true,
+    //     sort: { created: -1 },
+    //   });
+    const lsSession = LivechatSession.findOne(filter, {
+      upsert: true,
+      sort: { created: -1 },
+    });
+    lsSession.end_datetime = Date.now();
+    lsSession.is_active = false;
+    const queryRes = lsSession.save();
+    console.log({ queryRes });
     resolve(`Session saved ${queryRes}`);
   });
 }
