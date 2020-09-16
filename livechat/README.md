@@ -28,6 +28,7 @@ Features:
 7. Role based authentication middleware
 8. Sending of image and files
 9. uploading of files to amazon/alibaba bucket
+10. Added default seed to database to create superuser and first setup
 
 Project Requirements:
 1. Permission Group for different users
