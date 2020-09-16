@@ -26,6 +26,8 @@ Features:
 5. Clean and modular code, DRY Principle and SOLID principle (adapted from the code Clean Code)
 6. Object-Oriented programming
 7. Role based authentication middleware
+8. Sending of image and files
+9. uploading of files to amazon/alibaba bucket
 
 Project Requirements:
 1. Permission Group for different users
