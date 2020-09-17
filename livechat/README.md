@@ -83,3 +83,16 @@ Sample body request:
     "updated_at" : ISODate("2020-09-08T17:56:08.927+0800")
 }
 ```
+
+### User Tags
+```
+PUT /users/tag, authentication required
+{
+    "id": "5f102a919e9dab93d2bb5bc3", <-- botUser ID/session ID
+    "tags": ["test1", "test2"]
+}
+GET, authentication and permission required
+{
+    "id": "5f102a919e9dab93d2bb5bc2"
+}
+```
