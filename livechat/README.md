@@ -47,8 +47,10 @@ Sample body request:
     "text": "你好！",
     "language": "CN"
 }
+
 // Read (GET) AUTH+PERMISSION NEEDED
 {}
+
 // Update (PUT), send the new document back, it will replace the old document, AUTH+PERMISSION NEEDED
 {
     "responseId": "5f5753c4bba1270b7ce5b575",
@@ -63,10 +65,12 @@ Sample body request:
         "created_at": "2020-09-08T09:56:21.045Z"
     }
 }
+
 // Delete (DELETE) AUTH+PERMISSION NEEDED
 {
     "responseId": "5f5753c4bba1270b7ce5b575"
 }
+
 // Sample document
 { 
     "_id" : ObjectId("5f5753c4bba1270b7ce5b575"), 
@@ -86,13 +90,17 @@ Sample body request:
 
 ### User Tags
 ```
-PUT /users/tag, authentication required
+URL: /users/tag
+
+// Read (GET) AUTH+PERMISSION NEEDED
+{
+    "id": "5f102a919e9dab93d2bb5bc2"
+}
+
+// Edit (PUT) AUTH+PERMISSION NEEDED
 {
     "id": "5f102a919e9dab93d2bb5bc3", <-- botUser ID/session ID
     "tags": ["test1", "test2"]
 }
-GET, authentication and permission required
-{
-    "id": "5f102a919e9dab93d2bb5bc2"
-}
+
 ```
