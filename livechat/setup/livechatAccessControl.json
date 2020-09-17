@@ -23,7 +23,18 @@
       "name" : "delete_canned_response",
       "category" : "Canned Response",
       "method" : "DELETE"
+    },
+    {
+      "_id" : "5f62e6c1510fc32d471c6dc5",
+      "name" : "create_user",
+      "category" : "User",
+      "method" : "POST"
+    },
+    {
+      "_id" : "5f62e712510fc32d471c6dc9",
+      "name" : "edit_user_tag",
+      "category" : "User Tag",
+      "method" : "PUT"
     }
-
   ]
 }
