@@ -68,12 +68,19 @@ exports.login = async (req, res) => {
 
   if (!user) throw 'Your account information was entered incorrectly.';
 
+  if (user.is_locked) {
+    return res.status(403).json({
+      message: 'Your account is currently locked, please contact the administrator to reset your account',
+    });
+  }
+
   verifyPassword(password, user.password, async (err, correct) => {
     if (err) {
       return 1;
     }
     if (correct) {
       user.last_active = Date.now();
+      user.invalid_login_attempts = 0;
       await user.save();
 
       // for Permissions
@@ -110,6 +117,10 @@ exports.login = async (req, res) => {
       });
     } else {
       user.invalid_login_attempts += 1;
+
+      if (user.invalid_login_attempts >= 5) {
+        user.is_locked = true;
+      }
       await user.save();
       res.status(401).json({
         message: 'Your account information was entered incorrectly.',
