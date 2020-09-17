@@ -12,6 +12,7 @@ const SessionSchema = new Schema({
   is_active: Boolean,
   chat_state: String,
   end_at: Date,
+  tags: [String],
 }, { collection: 'session', versionKey: false });
 
 module.exports = mongoose.model('Session', SessionSchema);

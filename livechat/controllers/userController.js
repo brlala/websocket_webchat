@@ -2,6 +2,8 @@ const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
 const LivechatUser = require('../models/LivechatUser');
+const BotUser = require('../models/BotUsers');
+const Session = require('../models/Session');
 const LivechatUserGroup = require('../models/LivechatUserGroup');
 const LivechatAccessControl = require('../models/LivechatAccessControl');
 
@@ -113,5 +115,28 @@ exports.login = async (req, res) => {
         message: 'Your account information was entered incorrectly.',
       });
     }
+  });
+};
+
+exports.tag = async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400)
+      .json({ errors: errors.array() });
+  }
+
+  const { id, tags } = req.body;
+  const botUser = await BotUser.findOne({ _id: id });
+  const sessionUser = await Session.findOne({ _id: id });
+  const user = botUser || sessionUser;
+  if (!user) {
+    return res.status(404).json({
+      message: 'User not found.',
+    });
+  }
+  user.tags = tags;
+  const response = await user.save();
+  res.json({
+    message: 'Tags successfully updated',
   });
 };

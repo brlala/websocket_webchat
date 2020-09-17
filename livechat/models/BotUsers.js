@@ -21,6 +21,8 @@ const BotUserSchema = new Schema({
   updated_at: Date,
   updated_by: String,
   is_active: Boolean,
+  chatbot: {},
+  tags: [String],
 }, { collection: 'bot_user', versionKey: false });
 
 module.exports = mongoose.model('BotUser', BotUserSchema);
