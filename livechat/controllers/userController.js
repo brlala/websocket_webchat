@@ -39,7 +39,7 @@ exports.register = async (req, res) => {
       username: email,
       email,
       password: hashString,
-      livechat_user_group_id: defaultGroup._id,
+      livechat_agent_group_id: defaultGroup._id,
       last_active: Date.now(),
       force_change_password: false,
       password_history: [],
@@ -75,7 +75,7 @@ exports.login = async (req, res) => {
       await user.save();
 
       // for Permissions
-      const userGroup = await LivechatUserGroup.findOne({ _id: user.livechat_user_group_id });
+      const userGroup = await LivechatUserGroup.findOne({ _id: user.livechat_agent_group_id });
       const pipeline = [
         { $match: { _id: { $in: userGroup.access_control_ids.map((o) => mongoose.Types.ObjectId(o)) } } },
         { $group: { _id: null, permissions: { $addToSet: '$name' } } },
