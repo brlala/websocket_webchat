@@ -35,3 +35,51 @@ Project Requirements:
 2. Load Messages upon entering
 3. Canned Response for Agents to customize
 7. Role based authentication middleware
+
+# REST API Endpoints
+### Canned Response
+```
+URL: canned-response/
+Sample body request:
+// Create (POST) AUTH+PERMISSION NEEDED
+{
+    "name": "hi",
+    "text": "你好！",
+    "language": "CN"
+}
+// Read (GET) AUTH+PERMISSION NEEDED
+{}
+// Update (PUT), send the new document back, it will replace the old document, AUTH+PERMISSION NEEDED
+{
+    "responseId": "5f5753c4bba1270b7ce5b575",
+    "updatedResponse": {
+        "_id": "5f5753c4bba1270b7ce5b575",
+        "user": "5f507706ff6b9c68989009e5",
+        "name": "hi1",
+        "text": {
+            "CN": "你好！"
+        },
+        "is_active": true,
+        "created_at": "2020-09-08T09:56:21.045Z"
+    }
+}
+// Delete (DELETE) AUTH+PERMISSION NEEDED
+{
+    "responseId": "5f5753c4bba1270b7ce5b575"
+}
+// Sample document
+{ 
+    "_id" : ObjectId("5f5753c4bba1270b7ce5b575"), 
+    "user" : ObjectId("5f507706ff6b9c68989009e5"), 
+    "name" : "hi", 
+    "text" : {
+        "CN" : "你好！", 
+        "MY" : "Apa Khabar?", 
+        "EN" : "Hi!!!"
+    }, 
+    "is_active" : true, 
+    "selected" : false, 
+    "created_at" : ISODate("2020-09-08T17:37:47.687+0800"), 
+    "updated_at" : ISODate("2020-09-08T17:56:08.927+0800")
+}
+```
