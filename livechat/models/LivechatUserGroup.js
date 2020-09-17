@@ -11,6 +11,6 @@ const LivechatUserGroupSchema = new Schema({
   created_by: Schema.Types.ObjectId,
   updated_by: Schema.Types.ObjectId,
 
-}, { collection: 'livechat_user_group', versionKey: false });
+}, { collection: 'livechat_agent_group', versionKey: false });
 
 module.exports = mongoose.model('LivechatUserGroup', LivechatUserGroupSchema);
