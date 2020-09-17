@@ -35,6 +35,12 @@
       "name" : "edit_user_tag",
       "category" : "User Tag",
       "method" : "PUT"
+    },
+    {
+      "_id" : "5f62f60c510fc32d471c6e4a",
+      "name" : "read_user_tag",
+      "category" : "User Tag",
+      "method" : "GET"
     }
   ]
 }

@@ -21,7 +21,7 @@ async function addCannedResponses(database) {
     const result = await collection.replaceOne({ _id: doc._id }, doc, { upsert: true });
 
     console.log(
-      `CannedResponses Documents were inserted with the _id: ${doc._id}`,
+      `CannedResponses [${doc.name}] inserted with the _id: ${doc._id}`,
     );
   }
 }
@@ -36,7 +36,7 @@ async function addAccessControl(database) {
     const result = await collection.replaceOne({ _id: doc._id }, doc, { upsert: true });
 
     console.log(
-      `AccessControl Documents were inserted with the _id: ${doc._id}`,
+      `AccessControl [${doc.name}] inserted with the _id: ${doc._id}`,
     );
   }
 }
@@ -60,13 +60,25 @@ async function addAgentGroup(database) {
     const result = await collection.replaceOne({ _id: doc._id }, doc, { upsert: true });
 
     console.log(
-      `AgentGroup Documents were inserted with the _id: ${doc._id}`,
+      `AgentGroup [${doc.name}] inserted with the _id: ${doc._id}`,
     );
   }
 }
 
 async function addDefaultUser(database) {
   const collection = database.collection('livechat_agent');
+
+  // getting default group
+  const groupObj = JSON.parse(fs.readFileSync('setup/livechatAgentGroup.json', 'utf8'));
+  let defaultGroupId;
+  for (let i = 0; i < groupObj.responses.length; i++) {
+    let doc = { ...groupObj.responses[i] };
+    if (doc.name === 'default') {
+      defaultGroupId = doc._id;
+      break;
+    }
+  }
+  console.log({ defaultGroupId })
   // create a document to be inserted
   const obj = JSON.parse(fs.readFileSync('setup/livechatUser.json', 'utf8'));
   for (let i = 0; i < obj.responses.length; i++) {
@@ -74,11 +86,11 @@ async function addDefaultUser(database) {
     doc._id = new ObjectID(obj.responses[i]._id);
     doc.created_at = new Date();
     doc.updated_at = new Date();
-    doc.livechat_agent_group_id = new ObjectID(obj.responses[i].livechat_agent_group_id);
+    doc.livechat_agent_group_id = new ObjectID(defaultGroupId);
     const result = await collection.replaceOne({ _id: doc._id }, doc, { upsert: true });
 
     console.log(
-      `DefaultUser Documents were inserted with the _id: ${doc._id}`,
+      `DefaultUser [${doc.email}] inserted with the _id: ${doc._id}`,
     );
   }
 }

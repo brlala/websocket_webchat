@@ -21,6 +21,10 @@ router.post('/register', auth, hasPermission('create_user'), [
 router.put('/tag', auth, hasPermission('edit_user_tag'), [
   body('id').not().isEmpty().withMessage('Field is required'),
   body('tags').isArray().withMessage('Expected Array[String]'),
-], catchErrors(userController.tag));
+], catchErrors(userController.addTag));
+
+router.get('/tag', auth, hasPermission('read_user_tag'), [
+  body('id').not().isEmpty().withMessage('Field is required'),
+], catchErrors(userController.readTag));
 
 module.exports = router;

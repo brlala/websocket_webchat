@@ -118,7 +118,7 @@ exports.login = async (req, res) => {
   });
 };
 
-exports.tag = async (req, res) => {
+exports.addTag = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400)
@@ -138,5 +138,27 @@ exports.tag = async (req, res) => {
   const response = await user.save();
   res.json({
     message: 'Tags successfully updated',
+  });
+};
+
+exports.readTag = async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400)
+      .json({ errors: errors.array() });
+  }
+
+  const { id } = req.body;
+  const botUser = await BotUser.findOne({ _id: id });
+  const sessionUser = await Session.findOne({ _id: id });
+  const user = botUser || sessionUser;
+  if (!user) {
+    return res.status(404).json({
+      message: 'User not found.',
+    });
+  }
+  res.json({
+    user: user._id,
+    tags: user.tags,
   });
 };
