@@ -15,8 +15,14 @@ router.post('/register', auth, hasPermission('create_user'), [
   body('firstName').not().isEmpty().withMessage('Field is required'),
   body('lastName').not().isEmpty().withMessage('Field is required'),
   body('email').isEmail().withMessage('Kindly provide a valid email'),
-  body('password').isLength({ min: 8 }).withMessage('Require a minimum password length of 8'),
 ], catchErrors(userController.register));
+
+router.get('/validate/:token', catchErrors(userController.validate));
+router.post('/create-password', [
+  body('passwordOne').isLength({ min: 8 }).withMessage('Require a minimum password length of 8'),
+  body('passwordTwo').isLength({ min: 8 }).withMessage('Require a minimum password length of 8'),
+  body('token').not().isEmpty().withMessage('Require a minimum password length of 8'),
+], catchErrors(userController.createPassword));
 
 router.put('/tag', auth, hasPermission('edit_user_tag'), [
   body('id').not().isEmpty().withMessage('Field is required'),

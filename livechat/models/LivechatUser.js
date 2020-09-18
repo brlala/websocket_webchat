@@ -21,6 +21,10 @@ const LivechatUserSchema = new Schema({
   is_locked: Boolean,
   last_password_change: Date,
   refresh_token_jti: String,
+  password_reset: {
+    token: String,
+    expire: Date,
+  },
 }, { collection: 'livechat_agent', versionKey: false });
 
 module.exports = mongoose.model('LivechatUser', LivechatUserSchema);
