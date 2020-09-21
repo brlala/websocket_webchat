@@ -1,7 +1,3 @@
-require('dotenv').config();
-// utils
-const jwt = require('jsonwebtoken');
-
 // Database
 const mongoose = require('mongoose');
 const db = require('./database').initialize();

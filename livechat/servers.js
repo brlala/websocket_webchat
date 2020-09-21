@@ -1,12 +1,11 @@
 // See https://github.com/elad/node-cluster-socket.io
 require('dotenv').config();
-const express = require('express');
 const cluster = require('cluster');
 const net = require('net');
-const socketio = require('socket.io');
 // const helmet = require('helmet')
 const socketMain = require('./socketMain');
 // const expressMain = require('./expressMain');
+const jwt = require('jsonwebtoken');
 
 const port = process.env.APP_PORT;
 const numProcesses = require('os').cpus().length;

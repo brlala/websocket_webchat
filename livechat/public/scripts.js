@@ -3,7 +3,7 @@ const username = prompt('What is your username?');
 const socket = io('http://localhost:9000', {
   query: {
     username,
-    token: 'aeyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVmNTA3NzA2ZmY2YjljNjg5ODkwMDllNSIsImZpcnN0TmFtZSI6InRlc3QiLCJsYXN0TmFtZSI6InVzZXIiLCJlbWFpbCI6ImFzZEBhc2QuY29tIiwiaWF0IjoxNTk5MTIyNzcwLCJleHAiOjE2MDY4OTg3NzB9.RjJFk7tN05nw2CH7CWkcdBjG0CCLnjUsF-BF_WJvZOQ',
+    token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVmNTBkZjUwNWYyZWQyMTZmZmM0MGU0YiIsImZpcnN0TmFtZSI6IlVzZXIiLCJsYXN0TmFtZSI6IlBhbmQuYWkiLCJlbWFpbCI6InVzZXJAcGFuZC5haSIsInBlcm1pc3Npb25zIjpbImRlbGV0ZV9jYW5uZWRfcmVzcG9uc2UiLCJlZGl0X3VzZXJfdGFnIiwicmVhZF91c2VyX3RhZyIsImNyZWF0ZV9jYW5uZWRfcmVzcG9uc2UiLCJyZWFkX2Nhbm5lZF9yZXNwb25zZSIsImVkaXRfY2FubmVkX3Jlc3BvbnNlIiwiY3JlYXRlX3VzZXIiXSwiaWF0IjoxNjAwNjc5NDc4LCJleHAiOjE2MDg0NTU0Nzh9.BC1EHtkXJOUZnr_T5WkJG-MCjHTpKQrBbIAoFv6l3AI',
   },
 });
 socket.username = username;
