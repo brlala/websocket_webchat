@@ -49,7 +49,10 @@ const BotSchema = new Schema({
     rabbitmq_broadcast: String,
     rabbitmq_testing: String,
   }),
-  redis: Map,
+  redis: {
+    redis_host: String,
+    redis_port: Number,
+  },
   nlp: Map,
   portal: Map,
   livechat: {
