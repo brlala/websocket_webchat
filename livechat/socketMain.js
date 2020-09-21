@@ -49,6 +49,20 @@ function socketMain(io, socket) {
     console.log(`Disconnected: ${socket.payload.email}`);
   });
 
+  function insertDbMessageToRoom(nsRoom, roomToJoin, messages) {
+    messages.slice().reverse().forEach((msg) => {
+      const fullMsg = {
+        text: msg.data.text,
+        time: msg.created_at,
+        username: msg.handler ? roomToJoin : 'bot',
+        handler: msg.handler ? 'user' : 'bot',
+        avatar: 'https://d1nhio0ox7pgb.cloudfront.net/_img/g_collection_png/standard/256x256/user.png',
+      };
+      console.log(fullMsg);
+      nsRoom.addMessage(fullMsg);
+    });
+  }
+
   namespaces.forEach((namespace) => {
     // console.log('reloading namespace in ', namespace);
     io.of(namespace.endpoint).on('connection', (async (nsSocket) => {
@@ -72,6 +86,7 @@ function socketMain(io, socket) {
         // });
         console.log('Users: ', users);
         const nsRoom = namespace.rooms.find((room) => room.roomTitle === roomToJoin);
+
         if (!users.some((user) => user.userId === roomToJoin) && nsRoom.platform) {
           // only set the state and send first message if user does not exist in list
           console.log('setting join state for: ', roomToJoin);
@@ -110,17 +125,7 @@ function socketMain(io, socket) {
             ])
             .exec();
           // console.log('MESSAGES');
-          messages.slice().reverse().forEach((msg) => {
-            const fullMsg = {
-              text: msg.data.text,
-              time: msg.created_at,
-              username: msg.handler ? roomToJoin : 'bot',
-              handler: msg.handler ? 'user' : 'bot',
-              avatar: 'https://d1nhio0ox7pgb.cloudfront.net/_img/g_collection_png/standard/256x256/user.png',
-            };
-            console.log(fullMsg);
-            nsRoom.addMessage(fullMsg);
-          });
+          insertDbMessageToRoom(nsRoom, roomToJoin, messages);
         }
 
         nsSocket.emit('historyCatchUp', nsRoom.history);
@@ -185,6 +190,30 @@ function socketMain(io, socket) {
         const nsRoom = namespace.rooms.find((room) => room.roomTitle === msg.room);
         msg.platform = nsRoom.platform;
         sendMessageToClient(nsSocket, namespace, msg);
+      });
+      nsSocket.on('loadMessage', async (payload) => {
+        console.log(`[x] Received Event: loadMessage, Payload: ${JSON.stringify(payload)}`);
+        const { lastMessage, limit, roomTitle } = payload;
+
+        // loading more of previous message
+        const query = {
+          _id: {
+            $lt: lastMessage,
+          },
+        };
+        let messages = await Message.find(query)
+          .sort({ _id: -1 })
+          .limit(limit)
+          .or([
+            { session_id: roomTitle },
+            { sender_id: roomTitle },
+            { receiver_id: roomTitle },
+          ])
+          .exec();
+
+        const nsRoom = namespace.rooms.find((room) => room.roomTitle === roomTitle);
+        insertDbMessageToRoom(nsRoom, roomTitle, messages);
+        nsSocket.emit('nsRoomLoad', namespace.rooms);
       });
     }));
     // console.log(namespace)
