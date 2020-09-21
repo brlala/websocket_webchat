@@ -78,7 +78,7 @@ async function addDefaultUser(database) {
       break;
     }
   }
-  console.log({ defaultGroupId })
+  console.log({ defaultGroupId });
   // create a document to be inserted
   const obj = JSON.parse(fs.readFileSync('setup/livechatUser.json', 'utf8'));
   for (let i = 0; i < obj.responses.length; i++) {
