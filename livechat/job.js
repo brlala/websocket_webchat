@@ -19,7 +19,6 @@ module.exports.handleMessage = function (msg) {
   userRoom.addMessage(fullMsg);
 
   io.of('/wiki').to(msg[receiver]).emit('messageToClients', fullMsg);
-  console.log(1);
 };
 
 module.exports.addRequestRoom = function (chatRequest) {

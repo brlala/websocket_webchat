@@ -259,7 +259,6 @@ async function sendMessageToClient(nsSocket, namespace, msg) {
   // console.log('matched room');
   // console.log(nsRoom);
   io.of(namespace.endpoint).to(roomTitle).emit('messageToClients', fullMsg);
-  console.log(2);
 }
 
 function updateUsersInRoom(namespace, roomToJoin) {
