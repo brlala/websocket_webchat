@@ -198,7 +198,6 @@ namespaces.forEach((namespace) => {
 
       // change user chat state
       const res = await changeUserChatState(roomToRemove, platform, 'bot');
-      console.log('finding', res);
     });
     nsSocket.on('newMessageToServer', async (msg) => {
       console.log(`[x] Received Event: newMessageToServer, Payload: ${JSON.stringify(msg)}`);
