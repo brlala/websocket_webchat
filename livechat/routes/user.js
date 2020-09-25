@@ -30,7 +30,6 @@ router.put('/tag', auth, hasPermission('edit_user_tag'), [
 ], catchErrors(userController.addTag));
 
 router.get('/tag', auth, hasPermission('read_user_tag'), [
-  body('id').not().isEmpty().withMessage('Field is required'),
 ], catchErrors(userController.readTag));
 
 module.exports = router;

@@ -278,13 +278,8 @@ exports.addTag = async (req, res) => {
 };
 
 exports.readTag = async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400)
-      .json({ errors: errors.array() });
-  }
 
-  const { id } = req.body;
+  const { id } = req.query;
   const botUser = await BotUser.findOne({ _id: id });
   const sessionUser = await Session.findOne({ _id: id });
   const user = botUser || sessionUser;
