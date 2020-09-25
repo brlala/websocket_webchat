@@ -22,9 +22,9 @@ async function sendEmail(to, subject, html) {
   mailgun.messages().send(data, (err, body) => {
     // If there is an error, render the error page
     if (err) {
-      console.log('got an error: ', err);
+      console.log('Error while sending email: ', err);
     } else {
-      console.log(data);
+      console.log('Email successfully sent out');
     }
   });
 }

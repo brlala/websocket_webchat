@@ -19,6 +19,7 @@
     "ip": "^1.1.5",
     "jsonwebtoken": "^8.5.1",
     "mailgun-js": "^0.22.0",
+    "moment-timezone": "^0.5.31",
     "mongodb": "^3.6.2",
     "mongoose": "^5.9.28",
     "morgan": "^1.10.0",

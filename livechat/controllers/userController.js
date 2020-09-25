@@ -191,7 +191,6 @@ exports.login = async (req, res) => {
 
 exports.validate = async (req, res) => {
   // print params from URL
-  console.log(req.params);
   const { token } = req.params;
   const query = {
     'password_reset.token': token,
@@ -278,7 +277,6 @@ exports.addTag = async (req, res) => {
 };
 
 exports.readTag = async (req, res) => {
-
   const { id } = req.query;
   const botUser = await BotUser.findOne({ _id: id });
   const sessionUser = await Session.findOne({ _id: id });
