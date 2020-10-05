@@ -3,31 +3,57 @@ const Room = require('./classes/Room');
 
 let { getIO } = require('./socketio');
 const namespaces = require('./data/namespaces');
+const { getBotConfig } = require('./globals');
+const Message = require('./models/Message');
+const { insertDbMessageToRoom } = require('./utils');
+const { formatMessage } = require('./utils');
 
-module.exports.handleMessage = function (msg) {
+async function handleMessage(msg) {
+  console.log({ msg });
   const io = getIO();
   const receiver = msg.platform === 'widget' ? 'session_id' : 'sender_platform_id';
-
-  const fullMsg = {
-    text: msg.data.text,
-    time: Date.now(),
-    username: msg[receiver],
-    handler: 'user',
-    avatar: 'https://d1nhio0ox7pgb.cloudfront.net/_img/g_collection_png/standard/256x256/user.png',
-  };
-  const userRoom = namespaces[0].rooms.find((room) => room.roomTitle === msg[receiver]);
+  msg.username = msg[receiver];
+  const fullMsg = await formatMessage(msg, 'user');
+  console.log({ rooms: namespaces[0].rooms, userReference: msg[receiver] });
+  const userRoom = namespaces[0].rooms.find((room) => room.userReference === msg[receiver]);
   userRoom.addMessage(fullMsg);
+  io.of('/wiki').to(userRoom.roomTitle).emit('messageToClients', fullMsg);
+}
 
-  io.of('/wiki').to(msg[receiver]).emit('messageToClients', fullMsg);
-};
+async function addRequestRoom(chatRequest) {
+  const { uid, platform, id } = chatRequest;
 
-module.exports.addRequestRoom = function (chatRequest) {
-  const { uid, platform } = chatRequest;
-  console.log(`Adding room ${uid}:${platform}`);
-  const userRoom = new Room(uuidv4(), uid, 'Wiki', false, platform);
+  const roomReference = id || uid;
+  console.log(`Adding room ${roomReference}:${platform}`);
+  const userRoom = new Room(uuidv4(), roomReference, uid, 'Wiki', false, platform);
   namespaces[0].addRoom(userRoom);
   const io = getIO();
+
+  // loading the amount of messages
+  const botConfig = await getBotConfig();
+
+  // cater for platforms and widget format
+  let query;
+  query = {
+    $or: [
+      { session_id: roomReference },
+      { receiver_id: roomReference },
+      { sender_id: roomReference },
+    ],
+  };
+
+  let messages = await Message.find(query)
+    .sort({ _id: -1 })
+    .limit(botConfig.livechat.history_message_count)
+    .exec();
+  insertDbMessageToRoom(userRoom, roomReference, messages);
+  console.log({ rooms: namespaces[0].rooms });
   namespaces.forEach((namespace) => {
     io.of('/wiki').emit('nsRoomLoad', namespace.rooms);
   });
+}
+
+module.exports = {
+  addRequestRoom,
+  handleMessage,
 };

@@ -16,7 +16,6 @@ const LivechatUserSchema = new Schema({
   livechat_agent_group_id: Schema.Types.ObjectId,
   last_active: Date,
   force_change_password: Boolean,
-  password_history: [String],
   invalid_login_attempts: Number,
   is_locked: Boolean,
   last_password_change: Date,

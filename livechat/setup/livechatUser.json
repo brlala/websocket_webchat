@@ -2,9 +2,6 @@
   "responses": [
     {
       "_id" : "5f50df505f2ed216ffc40e4b",
-      "password_history" : [
-
-      ],
       "created_by" : null,
       "updated_by" : null,
       "is_active" : true,

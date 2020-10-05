@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 const LivechatCannedResponseSchema = new Schema({
-  user: Schema.Types.ObjectId,
+  user_id: Schema.Types.ObjectId,
   name: String,
   text: {},
   is_active: Boolean,

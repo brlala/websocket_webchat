@@ -2,13 +2,16 @@ const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const { validationResult } = require('express-validator');
-const { readFile } = require('fs');
+const fs = require('fs');
+const util = require('util');
 const LivechatUser = require('../models/LivechatUser');
 const BotUser = require('../models/BotUsers');
 const Session = require('../models/Session');
 const LivechatUserGroup = require('../models/LivechatUserGroup');
 const LivechatAccessControl = require('../models/LivechatAccessControl');
 const { sendEmail } = require('./emailController');
+
+const readFile = util.promisify(fs.readFile);
 
 const { hashPassword, verifyPassword } = require('../password');
 
@@ -66,11 +69,15 @@ exports.register = async (req, res) => {
     return res.status(400).json({ errors: errors.array() });
   }
 
+  const { id } = req.payload;
   const { firstName, lastName } = req.body;
   let { email } = req.body;
   email = email.toLowerCase();
 
-  const userExists = await LivechatUser.findOne({ email: { $regex: new RegExp(`^${email.toLowerCase()}$`, 'i') } });
+  const userExists = await LivechatUser.findOne({
+    email: { $regex: new RegExp(`^${email.toLowerCase()}$`, 'i') },
+    is_active: true,
+  });
   if (userExists) throw 'User with same email already exits.';
 
   const defaultGroup = await LivechatUserGroup.findOne({ name: 'default' });
@@ -79,7 +86,7 @@ exports.register = async (req, res) => {
   const token = crypto.randomBytes(32).toString('hex');
   const user = new LivechatUser({
     created_at: Date.now(),
-    created_by: 'ffffffffffffffffffffffff',
+    created_by: id,
     updated_at: Date.now(),
     updated_by: null,
     is_active: true,
@@ -91,7 +98,7 @@ exports.register = async (req, res) => {
     livechat_agent_group_id: defaultGroup._id,
     last_active: Date.now(),
     force_change_password: true,
-    password_history: [],
+
     invalid_login_attempts: 0,
     is_locked: false,
     last_password_change: Date.now(),
@@ -103,16 +110,12 @@ exports.register = async (req, res) => {
   });
   await user.save();
   const url = `${process.env.FRONTEND_DOMAIN_URL}/reset-password/${token}`;
-  readFile('static/create-password.html', 'utf8', async (err, html) => {
-    if (err) {
-      return console.log(err);
-    }
-    const result = html.replace(/A8F5F167F44F4964E6C998DEE827110C/g, url);
-    await sendEmail(email, 'Livechat Verification Email', result);
-
-    res.json({
-      message: `User [${email}] registered successfully! Please click on the verification link in your email.`,
-    });
+  const data = await readFile('static/create-password.html', 'utf8');
+  const result = data.replace(/A8F5F167F44F4964E6C998DEE827110C/g, url);
+  await sendEmail(email, 'Livechat Verification Email', result);
+  console.log({ url });
+  res.json({
+    message: `User [${email}] registered successfully! Please click on the verification link in your email.`,
   });
 };
 
@@ -124,7 +127,10 @@ exports.login = async (req, res) => {
   const { password } = req.body;
   let { email } = req.body;
   email = email.toLowerCase();
-  const user = await LivechatUser.findOne({ email: { $regex: new RegExp(`^${email}$`, 'i') } });
+  const user = await LivechatUser.findOne({
+    email: { $regex: new RegExp(`^${email}$`, 'i') },
+    is_active: true,
+  });
 
   if (!user) throw 'Your account information was entered incorrectly.';
 

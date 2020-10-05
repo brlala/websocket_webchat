@@ -6,6 +6,9 @@ const MessageSchema = new Schema({
   type: String,
   data: {
     text: String,
+    url: String,
+    urls: {},
+    items: {},
   },
   chatbot: Map,
   platform: String,
@@ -14,6 +17,7 @@ const MessageSchema = new Schema({
   session_id: Schema.Types.ObjectId,
   abbr: String,
   sender_id: Schema.Types.ObjectId,
+  receiver_id: Schema.Types.ObjectId,
   timing: Map,
   created_at: Date,
   handler: String,

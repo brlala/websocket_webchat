@@ -21,7 +21,7 @@ exports.create = async (req, res) => {
   }
 
   const cannedResponse = new LivechatCannedResponse({
-    user: id,
+    user_id: id,
     name,
     text: { [language]: text },
     is_active: true,
@@ -37,7 +37,7 @@ exports.create = async (req, res) => {
 
 exports.read = async (req, res) => {
   const { id } = req.payload;
-  const responses = await LivechatCannedResponse.find({ user: id });
+  const responses = await LivechatCannedResponse.find({ user_id: id });
   res.json({
     responses,
   });
