@@ -17,6 +17,10 @@ router.post('/register', auth, hasPermission('create_user'), [
   body('email').isEmail().withMessage('Kindly provide a valid email'),
 ], catchErrors(userController.register));
 
+router.post('/forget-password', [
+  body('email').isEmail().withMessage('Kindly provide a valid email'),
+], catchErrors(userController.forgetPassword));
+
 router.get('/validate/:token', catchErrors(userController.validate));
 router.post('/create-password', [
   body('passwordOne').isLength({ min: 8 }).withMessage('Require a minimum password length of 8'),
