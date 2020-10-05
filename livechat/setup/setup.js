@@ -15,13 +15,13 @@ async function addCannedResponses(database) {
   for (let i = 0; i < obj.responses.length; i++) {
     let doc = { ...obj.responses[i] };
     doc._id = ObjectID(obj.responses[i]._id);
-    doc.user = ObjectID(obj.responses[i].user);
+    doc.agent_id = undefined;
     doc.created_at = new Date();
     doc.updated_at = new Date();
     const result = await collection.replaceOne({ _id: doc._id }, doc, { upsert: true });
 
     console.log(
-      `CannedResponses [${doc.name}] inserted with the _id: ${doc._id}`,
+      `CannedResponses inserted with the _id: ${doc._id}`,
     );
   }
 }

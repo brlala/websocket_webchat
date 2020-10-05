@@ -1,22 +1,85 @@
 {
   "responses": [
     {
-      "_id": "5f5b3ad6dfba31427017bc65",
-      "user": "5f583e48e7e62e5ca704c0f4",
-      "name": "hi",
-      "text": {
-        "EN": "hi"
+      "_id": "5f7ab5d6d933156920d6ea98",
+      "category" : "Greetings",
+      "type" : "official",
+      "text" : {
+        "EN" : "Hello"
       },
-      "is_active": true
+      "is_active" : true
     },
     {
-      "_id": "5f5b3da2732f95478ab43b98",
-      "user": "5f583e48e7e62e5ca704c0f4",
-      "name": "just a test",
-      "text": {
-        "EN": "hey"
+      "_id": "5f7ac4730d949e539c23eea2",
+      "category" : "Greetings",
+      "type" : "official",
+      "text" : {
+        "EN" : "Good morning"
       },
-      "is_active": true
+      "is_active" : true
+    },
+    {
+      "_id": "5f7ac4730d949e539c23eea4",
+      "category" : "Greetings",
+      "type" : "official",
+      "text" : {
+        "EN" : "How may I help you?"
+      },
+      "is_active" : true
+    },
+    {
+      "_id": "5f7ac4730d949e539c23eea6",
+      "category" : "Conversations",
+      "type" : "official",
+      "text" : {
+        "EN" : "How have you been?"
+      },
+      "is_active" : true
+    },
+    {
+      "_id": "5f7ac4730d949e539c23eea8",
+      "category" : "Conversations",
+      "type" : "official",
+      "text" : {
+        "EN" : "Hey it has been a while"
+      },
+      "is_active" : true
+    },
+    {
+      "_id": "5f7ac4730d949e539c23eeaa",
+      "category" : "Conversations",
+      "type" : "official",
+      "text" : {
+        "EN" : "How's the weather there?"
+      },
+      "is_active" : true
+    },
+    {
+      "_id": "5f7ac4730d949e539c23eeac",
+      "category" : "Goodbyes",
+      "type" : "official",
+      "text" : {
+        "EN" : "Thanks bye!"
+      },
+      "is_active" : true
+    },
+    {
+      "_id": "5f7ac4730d949e539c23eeae",
+      "category" : "Goodbyes",
+      "type" : "official",
+      "text" : {
+        "EN" : "Bye, take care"
+      },
+      "is_active" : true
+    },
+    {
+      "_id": "5f7ac4730d949e539c23eeb0",
+      "category" : "Goodbyes",
+      "type" : "official",
+      "text" : {
+        "EN" : "Thanks for using our service"
+      },
+      "is_active" : true
     }
   ]
 }

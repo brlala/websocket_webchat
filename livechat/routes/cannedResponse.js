@@ -8,9 +8,9 @@ const hasPermission = require('../middlewares/roleAuth');
 
 router.get('/', auth, hasPermission('read_canned_response'), catchErrors(cannedResponseController.read));
 router.post('/', auth, hasPermission('create_canned_response'), [
-  body('name').not().isEmpty().withMessage('Field is required'),
   body('text').not().isEmpty().withMessage('Field is required'),
   body('language').not().isEmpty().withMessage('Field is required'),
+  body('category').not().isEmpty().withMessage('Field is required'),
 ], catchErrors(cannedResponseController.create));
 router.put('/', auth, hasPermission('edit_canned_response'), [
   body('responseId').not().isEmpty().withMessage('Response ID is required'),
