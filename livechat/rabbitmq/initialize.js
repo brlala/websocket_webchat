@@ -129,7 +129,6 @@ class RabbitMq {
   async publishMessage(fullMessage) {
     const botConfig = await getBotConfig();
     const RABBITMQ_CONTROLLER_QUEUE = botConfig.rabbitmq.rabbitmq_livechat_to_gateway;
-    console.log('publishing');
     const receiver = fullMessage.platform === 'widget' ? 'session_id' : 'receiver_platform_id';
     const queue = `${RABBITMQ_CONTROLLER_QUEUE}_${process.env.ABBREVIATION}_${fullMessage[receiver]}`;
     await this.sendDataToUserQueue(queue, fullMessage);

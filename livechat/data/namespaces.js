@@ -9,10 +9,11 @@ const wikiNs = new Namespace(0, 'Wiki', 'https://upload.wikimedia.org/wikipedia/
 // const linuxNs = new Namespace(2, 'Linux', 'https://upload.wikimedia.org/wikipedia/commons/a/af/Tux.png', '/linux');
 
 // Make the main room and add it to rooms. it will ALWAYS be 0
+Room.count = 0;
 wikiNs.addRoom(new Room(0, 'New Articles', 'Wiki'));
 wikiNs.addRoom(new Room(1, 'Editors', 'Wiki'));
 wikiNs.addRoom(new Room(2, 'Other', 'Wiki'));
-
+Room.count = 0;
 // mozNs.addRoom(new Room(0, 'Firefox', 'Mozilla'));
 // mozNs.addRoom(new Room(1, 'SeaMonkey', 'Mozilla'));
 // mozNs.addRoom(new Room(2, 'SpiderMonkey', 'Mozilla'));
