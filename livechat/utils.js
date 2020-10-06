@@ -9,7 +9,7 @@ async function formatMessage(msg, handler) {
     type: msg.type,
     handler,
     [receiver]: msg.userReference,
-    avatar: 'https://d1nhio0ox7pgb.cloudfront.net/_img/g_collection_png/standard/256x256/user.png',
+    // avatar: 'https://d1nhio0ox7pgb.cloudfront.net/_img/g_collection_png/standard/256x256/user.png',
     platform: msg.platform,
     data: {},
     abbr: process.env.ABBREVIATION,
@@ -61,7 +61,7 @@ function formatDbMessage(roomToJoin, messages) {
       roomTitle: roomToJoin,
       username: msg.handler ? roomToJoin : 'bot',
       handler: msg.handler ? 'user' : 'bot',
-      avatar: 'https://d1nhio0ox7pgb.cloudfront.net/_img/g_collection_png/standard/256x256/user.png',
+      // avatar: 'https://d1nhio0ox7pgb.cloudfront.net/_img/g_collection_png/standard/256x256/user.png',
     };
     if (['image', 'images'].includes(msg.type)) {
       if (msg.type === 'image') {

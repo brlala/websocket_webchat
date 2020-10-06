@@ -9,6 +9,8 @@ class Room {
     this.agent = null;
     this.userReference = userReference;
     this.user = user;
+    this.userAvatar = user?.profile_pic_url;
+    this.userName = `${user?.first_name} ${user?.last_name}`;
   }
 
   addMessage(message) {
