@@ -1,5 +1,5 @@
 class Room {
-  constructor(roomId, roomTitle, userReference, namespace, privateRoom = false, platform = null) {
+  constructor(roomId, roomTitle, userReference, namespace, privateRoom = false, platform = null, user) {
     this.roomId = roomId;
     this.roomTitle = roomTitle;
     this.namespace = namespace;
@@ -8,6 +8,7 @@ class Room {
     this.platform = platform;
     this.agent = null;
     this.userReference = userReference;
+    this.user = user;
   }
 
   addMessage(message) {

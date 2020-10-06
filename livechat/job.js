@@ -5,6 +5,8 @@ let { getIO } = require('./socketio');
 const namespaces = require('./data/namespaces');
 const { getBotConfig } = require('./globals');
 const Message = require('./models/Message');
+const BotUser = require('./models/BotUsers');
+const Session = require('./models/Session');
 const { insertDbMessageToRoom } = require('./utils');
 const { formatMessage } = require('./utils');
 
@@ -25,7 +27,10 @@ async function addRequestRoom(chatRequest) {
 
   const roomReference = id || uid;
   console.log(`Adding room ${roomReference}:${platform}`);
-  const userRoom = new Room(uuidv4(), roomReference, uid, 'Wiki', false, platform);
+  const botUser = await BotUser.findOne({ _id: roomReference });
+  const sessionUser = await Session.findOne({ _id: roomReference });
+  const user = botUser || sessionUser;
+  const userRoom = new Room(uuidv4(), roomReference, uid, 'Wiki', false, platform, user);
   namespaces[0].addRoom(userRoom);
   const io = getIO();
 
