@@ -18,6 +18,7 @@ const LivechatUserSchema = new Schema({
   force_change_password: Boolean,
   invalid_login_attempts: Number,
   is_locked: Boolean,
+  profile_pic_url: String,
   last_password_change: Date,
   refresh_token_jti: String,
   password_reset: {

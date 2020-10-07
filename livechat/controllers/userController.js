@@ -20,14 +20,14 @@ async function sendPasswordResetEmail(token, email) {
   const data = await readFile('static/create-password.html', 'utf8');
   const result = data.replace(/A8F5F167F44F4964E6C998DEE827110C/g, url);
   await sendEmail(email, 'Livechat Verification Email', result);
-  console.log({ url });
 }
 
 async function forgetPassword(req, res) {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400)
-      .json({ errors: errors.array() });
+    return res.status(400).json({
+      errors: errors.array(),
+    });
   }
 
   let { email } = req.body;
@@ -59,8 +59,9 @@ async function forgetPassword(req, res) {
 async function register(req, res) {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400)
-      .json({ errors: errors.array() });
+    return res.status(400).json({
+      errors: errors.array(),
+    });
   }
 
   const { id } = req.payload;
@@ -89,6 +90,7 @@ async function register(req, res) {
     username: email,
     email,
     password: null,
+    profile_pic_url: '',
     livechat_agent_group_id: defaultGroup._id,
     last_active: Date.now(),
     force_change_password: true,
@@ -112,8 +114,9 @@ async function register(req, res) {
 async function login(req, res) {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400)
-      .json({ errors: errors.array() });
+    return res.status(400).json({
+      errors: errors.array(),
+    });
   }
   const { password } = req.body;
   let { email } = req.body;
@@ -126,10 +129,9 @@ async function login(req, res) {
   if (!user) throw 'Your account information was entered incorrectly.';
 
   if (user.is_locked) {
-    return res.status(403)
-      .json({
-        message: 'Your account is currently locked, please contact the administrator to reset your account',
-      });
+    return res.status(403).json({
+      message: 'Your account is currently locked, please contact the administrator to reset your account',
+    });
   }
 
   verifyPassword(password, user.password, async (err, correct) => {
@@ -145,18 +147,8 @@ async function login(req, res) {
       const userGroup = await LivechatUserGroup.findOne({ _id: user.livechat_agent_group_id });
       const pipeline = [
         { $match: { _id: { $in: userGroup.access_control_ids.map((o) => mongoose.Types.ObjectId(o)) } } },
-        {
-          $group: {
-            _id: null,
-            permissions: { $addToSet: '$name' },
-          },
-        },
+        { $group: { _id: null, permissions: { $addToSet: '$name' } } },
       ];
-      // const query = {
-      //   _id: {
-      //     $in: userGroup.access_control_ids.map((o) => mongoose.Types.ObjectId(o)),
-      //   },
-      // };
       const cursor = await LivechatAccessControl.aggregate(pipeline);
       let permissions;
       cursor.forEach((doc) => {
@@ -170,6 +162,7 @@ async function login(req, res) {
         lastName: user.last_name,
         email,
         permissions,
+        profilePicUrl: user.profile_pic_url,
       }, process.env.SECRET, {
         expiresIn: process.env.JWT_EXPIRES_IN,
       });
@@ -185,10 +178,9 @@ async function login(req, res) {
         user.is_locked = true;
       }
       await user.save();
-      res.status(401)
-        .json({
-          message: 'Your account information was entered incorrectly.',
-        });
+      res.status(401).json({
+        message: 'Your account information was entered incorrectly.',
+      });
     }
   });
 }
@@ -205,10 +197,9 @@ async function validate(req, res) {
   const user = await LivechatUser.findOne(query);
 
   if (!user) {
-    return res.status(404)
-      .json({
-        message: 'User not found.',
-      });
+    return res.status(404).json({
+      message: 'User not found.',
+    });
   }
   res.json({
     message: 'Token is valid',
@@ -218,15 +209,15 @@ async function validate(req, res) {
 async function createPassword(req, res) {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400)
-      .json({ errors: errors.array() });
+    return res.status(400).json({
+      errors: errors.array(),
+    });
   }
   const { passwordOne, passwordTwo, token } = req.body;
   if (passwordOne !== passwordTwo) {
-    return res.status(400)
-      .json({
-        message: 'The password you entered does not match.',
-      });
+    return res.status(400).json({
+      message: 'The password you entered does not match.',
+    });
   }
   const query = {
     'password_reset.token': token,
@@ -236,10 +227,9 @@ async function createPassword(req, res) {
   };
   const user = await LivechatUser.findOne(query);
   if (!user) {
-    return res.status(404)
-      .json({
-        message: 'User not found.',
-      });
+    return res.status(404).json({
+      message: 'User not found.',
+    });
   }
 
   hashPassword(passwordTwo, async (err, hash) => {
@@ -264,8 +254,9 @@ async function createPassword(req, res) {
 async function addTag(req, res) {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400)
-      .json({ errors: errors.array() });
+    return res.status(400).json({
+      errors: errors.array(),
+    });
   }
 
   const { id, tags } = req.body;
@@ -273,10 +264,9 @@ async function addTag(req, res) {
   const sessionUser = await Session.findOne({ _id: id });
   const user = botUser || sessionUser;
   if (!user) {
-    return res.status(404)
-      .json({
-        message: 'User not found.',
-      });
+    return res.status(404).json({
+      message: 'User not found.',
+    });
   }
   user.tags = tags;
   const response = await user.save();
@@ -291,10 +281,9 @@ async function readTag(req, res) {
   const sessionUser = await Session.findOne({ _id: id });
   const user = botUser || sessionUser;
   if (!user) {
-    return res.status(404)
-      .json({
-        message: 'User not found.',
-      });
+    return res.status(404).json({
+      message: 'User not found.',
+    });
   }
   res.json({
     user: user._id,
