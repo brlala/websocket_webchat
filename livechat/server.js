@@ -197,7 +197,8 @@ namespaces.forEach((namespace) => {
 });
 
 async function sendMessageToClient(nsSocket, namespace, msg) {
-  const fullMsg = await formatMessage(msg, 'agent');
+  let fullMsg = await formatMessage(msg, 'agent');
+  fullMsg.roomTitle = msg.room; // for frontend formatting
   console.log(fullMsg);
 
   // Send this message to all sockets that re in the room of this socket

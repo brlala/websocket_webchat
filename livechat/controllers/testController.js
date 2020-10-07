@@ -2,8 +2,9 @@ const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 const { sendEmail } = require('./emailController');
 const LivechatUser = require('../models/LivechatUser');
+const BotUser = require('../models/BotUsers');
 
-exports.test = async (req, res) => {
+async function test(req, res) {
   // print params from URL
   console.log(req.params);
   const { email } = req.payload;
@@ -11,9 +12,9 @@ exports.test = async (req, res) => {
     message: 'authentication succeed',
     email,
   });
-};
+}
 
-exports.email = async (req, res) => {
+async function emailUser(req, res) {
   const { email, subject, html } = req.body;
   // print params from URL
   const response = await sendEmail(email, subject, html);
@@ -21,9 +22,9 @@ exports.email = async (req, res) => {
     message: 'email succeed',
     email,
   });
-};
+}
 
-exports.search = async (req, res) => {
+async function search(req, res) {
   const { email } = req.body;
   // print params from URL
   const cursor = await LivechatUser.find({ email: { $regex: new RegExp(`^${email}$`, 'i') } });
@@ -37,4 +38,19 @@ exports.search = async (req, res) => {
   res.json({
     users,
   });
+}
+
+async function reset(req, res) {
+  // print params from URL
+  const results = await BotUser.updateMany({}, { chat_state: 'bot' });
+  res.json({
+    results,
+  });
+}
+
+module.exports = {
+  test,
+  emailUser,
+  search,
+  reset,
 };
