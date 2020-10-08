@@ -11,13 +11,13 @@ const { insertDbMessageToRoom } = require('./utils');
 const { formatMessage } = require('./utils');
 
 async function handleMessage(msg) {
-  console.log({ msg });
   const io = getIO();
   const receiver = msg.platform === 'widget' ? 'session_id' : 'sender_platform_id';
   msg.username = msg[receiver];
-  const fullMsg = await formatMessage(msg, 'user');
-  console.log({ rooms: namespaces[0].rooms, userReference: msg[receiver] });
   const userRoom = namespaces[0].rooms.find((room) => room.userReference === msg[receiver]);
+  // for frontend
+  msg.roomTitle = userRoom.roomTitle;
+  const fullMsg = await formatMessage(msg, 'user');
   userRoom.addMessage(fullMsg);
   io.of('/wiki').to(userRoom.roomTitle).emit('messageToClients', fullMsg);
 }

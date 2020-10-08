@@ -198,7 +198,6 @@ namespaces.forEach((namespace) => {
 
 async function sendMessageToClient(nsSocket, namespace, msg) {
   let fullMsg = await formatMessage(msg, 'agent');
-  fullMsg.roomTitle = msg.room; // for frontend formatting
   console.log(fullMsg);
 
   // Send this message to all sockets that re in the room of this socket
@@ -209,7 +208,7 @@ async function sendMessageToClient(nsSocket, namespace, msg) {
   // const roomTitle = Object.keys(nsSocket.rooms)[1];
 
   // finding the room object for the room
-  const nsRoom = namespace.rooms.find((room) => room.roomTitle === msg.room);
+  const nsRoom = namespace.rooms.find((room) => room.roomTitle === msg.roomTitle);
   // console.log(`Error log: Searching ${roomTitle}`);
   // console.log({ nsRoom });
   nsRoom.addMessage(fullMsg);
@@ -219,7 +218,7 @@ async function sendMessageToClient(nsSocket, namespace, msg) {
   }
   // console.log('matched room');
   // console.log(nsRoom);
-  io.of(namespace.endpoint).to(msg.room).emit('messageToClients', fullMsg);
+  io.of(namespace.endpoint).to(msg.roomTitle).emit('messageToClients', fullMsg);
 }
 
 function updateUsersInRoom(namespace, roomToJoin) {
