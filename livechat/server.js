@@ -165,7 +165,7 @@ namespaces.forEach((namespace) => {
     });
     nsSocket.on('newMessageToServer', async (msg) => {
       console.log(`[x] Received Event: newMessageToServer, Payload: ${JSON.stringify(msg)}`);
-      const nsRoom = namespace.rooms.find((room) => room.roomTitle === msg.room);
+      const nsRoom = namespace.rooms.find((room) => room.roomTitle === msg.roomTitle);
       msg.platform = nsRoom.platform;
       msg.userReference = nsRoom.userReference;
       sendMessageToClient(nsSocket, namespace, msg);
@@ -187,11 +187,19 @@ namespaces.forEach((namespace) => {
 
       let messages = await Message.find(query)
         .sort({ _id: -1 })
-        .limit(limit)
+        .limit(limit + 1) // +1 is to see if there are still more previous messages
         .exec();
 
-      const results = await formatDbMessage(roomTitle, messages);
-      nsSocket.emit('showPreviousMessages', results);
+      let results = { isLastMessage: false };
+      if (messages.length <= limit) {
+        results.isLastMessage = true;
+      }
+
+      const formattedMessages = await formatDbMessage(roomTitle, messages.slice(0, limit + 1)); // remove the +1 msg
+      results.messages = formattedMessages;
+
+      console.log(results);
+      nsSocket.emit('showPreviousMessages', formattedMessages);
     });
   }));
 });

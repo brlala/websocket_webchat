@@ -4,6 +4,7 @@ const crypto = require('crypto');
 const { validationResult } = require('express-validator');
 const fs = require('fs');
 const util = require('util');
+const handlebars = require('handlebars');
 const LivechatUser = require('../models/LivechatUser');
 const BotUser = require('../models/BotUsers');
 const Session = require('../models/Session');
@@ -15,11 +16,20 @@ const readFile = util.promisify(fs.readFile);
 
 const { hashPassword, verifyPassword } = require('../password');
 
-async function sendPasswordResetEmail(token, email) {
-  const url = `${process.env.FRONTEND_DOMAIN_URL}/reset-password/${token}`;
+async function sendPasswordResetEmail(token, email, fullname) {
+  const resetPasswordUrl = `${process.env.FRONTEND_DOMAIN_URL}/reset-password/${token}`;
   const data = await readFile('static/create-password.html', 'utf8');
-  const result = data.replace(/A8F5F167F44F4964E6C998DEE827110C/g, url);
-  await sendEmail(email, 'Livechat Verification Email', result);
+  let template = handlebars.compile(data);
+  let replacements = {
+    fullname,
+    resetPasswordUrl,
+    expire: Number(process.env.LINK_EXPIRES_IN) * 24,
+    csmName: process.env.CSM_NAME,
+    csmEmail: process.env.CSM_EMAIL,
+    homeUrl: process.env.HOME_URL,
+  };
+  let htmlToSend = template(replacements);
+  await sendEmail(email, 'Livechat Verification Email', htmlToSend);
 }
 
 async function forgetPassword(req, res) {
@@ -43,7 +53,7 @@ async function forgetPassword(req, res) {
     throw msg;
   }
   const today = new Date();
-  const expire = today.setDate(today.getDate() + 1);
+  const expire = today.setDate(today.getDate() + parseInt(process.env.LINK_EXPIRES_IN));
   const token = crypto.randomBytes(32).toString('hex');
   user.password_reset = {
     token,
