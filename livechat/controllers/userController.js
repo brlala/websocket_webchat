@@ -18,12 +18,12 @@ const { hashPassword, verifyPassword } = require('../password');
 
 async function sendPasswordResetEmail(token, email, fullname) {
   const resetPasswordUrl = `${process.env.FRONTEND_DOMAIN_URL}/reset-password/${token}`;
-  const data = await readFile('static/create-password.html', 'utf8');
+  const data = await readFile('static/create-password v1.html', 'utf8');
   let template = handlebars.compile(data);
   let replacements = {
     fullname,
     resetPasswordUrl,
-    expire: Number(process.env.LINK_EXPIRES_IN) * 24,
+    expire: Number(process.env.LINK_EXPIRES_IN_DAYS) * 24,
     csmName: process.env.CSM_NAME,
     csmEmail: process.env.CSM_EMAIL,
     homeUrl: process.env.HOME_URL,
@@ -53,14 +53,15 @@ async function forgetPassword(req, res) {
     throw msg;
   }
   const today = new Date();
-  const expire = today.setDate(today.getDate() + parseInt(process.env.LINK_EXPIRES_IN));
+  const expire = today.setDate(today.getDate() + Number(process.env.LINK_EXPIRES_IN_DAYS));
   const token = crypto.randomBytes(32).toString('hex');
   user.password_reset = {
     token,
     expire,
   };
   await user.save();
-  await sendPasswordResetEmail(token, email);
+  const fullname = `${user.last_name} ${user.first_name}`;
+  await sendPasswordResetEmail(token, email, fullname);
   res.json({
     message: msg,
   });
@@ -115,7 +116,8 @@ async function register(req, res) {
     },
   });
   await user.save();
-  await sendPasswordResetEmail(token, email);
+  const fullname = `${lastName} ${firstName}`;
+  await sendPasswordResetEmail(token, email, fullname);
   res.json({
     message: `User [${email}] registered successfully! Please click on the verification link in your email.`,
   });
