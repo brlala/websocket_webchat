@@ -1,3 +1,4 @@
+const util = require('util');
 const { getBotConfig } = require('./globals');
 const { uploadFile } = require('./uploader');
 
@@ -31,6 +32,7 @@ async function formatMessage(msg, handler) {
   } else {
     console.log(`Type ${msg.type} not supported`);
   }
+  // console.log(util.inspect({ incoming: msg, outgoing: formattedMessage }, { showHidden: false, depth: null }));
   return formattedMessage;
 }
 
