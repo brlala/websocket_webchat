@@ -16,10 +16,14 @@ const readFile = util.promisify(fs.readFile);
 
 const { hashPassword, verifyPassword } = require('../password');
 
+function formatEmailWithValue(emailText, replacements) {
+  let template = handlebars.compile(emailText);
+  return template(replacements);
+}
+
 async function sendPasswordResetEmail(token, email, fullname) {
   const resetPasswordUrl = `${process.env.FRONTEND_DOMAIN_URL}/reset-password/${token}`;
   const data = await readFile('static/create-password v1.html', 'utf8');
-  let template = handlebars.compile(data);
   let replacements = {
     fullname,
     resetPasswordUrl,
@@ -28,8 +32,12 @@ async function sendPasswordResetEmail(token, email, fullname) {
     csmEmail: process.env.CSM_EMAIL,
     homeUrl: process.env.HOME_URL,
   };
-  let htmlToSend = template(replacements);
+  let htmlToSend = formatEmailWithValue(data, replacements);
   await sendEmail(email, 'Livechat Verification Email', htmlToSend);
+}
+
+function escapeRegExp(string) {
+  return string.replace(/[.*+\-?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
 }
 
 async function forgetPassword(req, res) {
@@ -44,7 +52,7 @@ async function forgetPassword(req, res) {
   email = email.toLowerCase();
 
   const user = await LivechatUser.findOne({
-    email: { $regex: new RegExp(`^${email.toLowerCase()}$`, 'i') },
+    email: { $regex: new RegExp(`^${escapeRegExp(email)}$`, 'i') },
     is_active: true,
   });
   const msg = 'An email will be sent out to the following email if the user is registered.';
@@ -81,7 +89,7 @@ async function register(req, res) {
   email = email.toLowerCase();
 
   const userExists = await LivechatUser.findOne({
-    email: { $regex: new RegExp(`^${email.toLowerCase()}$`, 'i') },
+    email: { $regex: new RegExp(`^${escapeRegExp(email)}$`, 'i') },
     is_active: true,
   });
   if (userExists) throw 'User with same email already exits.';
@@ -134,7 +142,7 @@ async function login(req, res) {
   let { email } = req.body;
   email = email.toLowerCase();
   const user = await LivechatUser.findOne({
-    email: { $regex: new RegExp(`^${email}$`, 'i') },
+    email: { $regex: new RegExp(`^${escapeRegExp(email)}$`, 'i') },
     is_active: true,
   });
 
@@ -304,6 +312,8 @@ async function readTag(req, res) {
 }
 
 module.exports = {
+  formatEmailWithValue,
+  escapeRegExp,
   forgetPassword,
   register,
   login,
