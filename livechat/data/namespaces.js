@@ -14,6 +14,7 @@ wikiNs.addRoom(new Room(0, 'New Articles', 'Wiki'));
 wikiNs.addRoom(new Room(1, 'Editors', 'Wiki'));
 wikiNs.addRoom(new Room(2, 'Other', 'Wiki'));
 Room.count = 0;
+
 // mozNs.addRoom(new Room(0, 'Firefox', 'Mozilla'));
 // mozNs.addRoom(new Room(1, 'SeaMonkey', 'Mozilla'));
 // mozNs.addRoom(new Room(2, 'SpiderMonkey', 'Mozilla'));

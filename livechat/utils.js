@@ -1,3 +1,4 @@
+const { getBotConfig } = require('./globals');
 const { uploadFile } = require('./uploader');
 
 async function formatMessage(msg, handler) {
@@ -50,19 +51,30 @@ function formatOutgoingMessage(msg) {
   return formattedMessage;
 }
 
-function formatDbMessage(roomToJoin, messages) {
+async function formatDbMessage(roomToJoin, messages) {
   // this is used when loading a room, to put DB messages into livechat message format
-  console.log();
   let results = [];
+  const botConfig = await getBotConfig();
+  const botId = botConfig._id;
   messages.slice().reverse().forEach((msg) => {
+    let sender;
+    if (msg.handler === 'agent') { // sent from agent to user
+      sender = 'agent';
+    } else if (msg.handler === 'bot' || msg.handler === 'livechat') { // sent by user to bot
+      sender = 'user';
+    } else { // bot message does not has handler
+      sender = 'bot';
+    }
+
     let fullMsg = {
       id: msg._id,
       time: msg.created_at,
       roomTitle: roomToJoin,
-      username: msg.handler ? roomToJoin : 'bot',
-      handler: msg.handler ? 'user' : 'bot',
+      username: msg.receiver_id === botId || msg.handler === 'agent' ? roomToJoin : 'bot',
+      handler: sender,
       // avatar: 'https://d1nhio0ox7pgb.cloudfront.net/_img/g_collection_png/standard/256x256/user.png',
     };
+    console.log(msg, fullMsg.username);
     if (['image', 'images'].includes(msg.type)) {
       if (msg.type === 'image') {
         fullMsg.data = { url: msg.data.url };
@@ -79,9 +91,9 @@ function formatDbMessage(roomToJoin, messages) {
   return results;
 }
 
-function insertDbMessageToRoom(nsRoom, roomToJoin, messages) {
+async function insertDbMessageToRoom(nsRoom, roomToJoin, messages) {
   console.log('Insert db messages');
-  const formattedMessages = formatDbMessage(roomToJoin, messages);
+  const formattedMessages = await formatDbMessage(roomToJoin, messages);
   formattedMessages.forEach((message) => {
     nsRoom.addMessage(message);
   });

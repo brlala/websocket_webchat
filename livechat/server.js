@@ -67,7 +67,21 @@ io.on('connection', (socket) => {
     console.log(`Disconnected: ${socket.payload.email}`);
   });
 });
+function resetChatState() {
+  // Used when user are still connected and the server restarts
+  Session.updateMany({ chat_state: { $ne: 'bot' } }, { chat_state: 'bot' }).then((value) => {
+    console.log('Reset all Widget user chat state');
+  }).catch((err) => {
+    console.log('Error resetting user chat state');
+  });
 
+  BotUser.updateMany({ chat_state: { $ne: 'bot' } }, { chat_state: 'bot' }).then((value) => {
+    console.log('Reset all Facebook user chat state');
+  }).catch((err) => {
+    console.log('Error resetting user chat state');
+  });
+}
+resetChatState();
 namespaces.forEach((namespace) => {
   // console.log('reloading namespace in ', namespace);
   io.of(namespace.endpoint).on('connection', (async (nsSocket) => {
@@ -84,13 +98,20 @@ namespaces.forEach((namespace) => {
       // const roomToLeave = Object.keys(nsSocket.rooms)[1];
       // nsSocket.leave(roomToLeave);
       // updateUsersInRoom(namespace, roomToLeave);
-      nsSocket.join(roomToJoin);
+
       // io.of('/wiki').in(roomToJoin).clients((error, clients) => {
       //   console.log(clients.length);
       //   numberOfUsersCallback(clients.length);
       // });
       console.log('Users: ', users);
       const nsRoom = namespace.rooms.find((room) => room.roomTitle === roomToJoin);
+      if (!nsRoom || nsRoom.agent) {
+        const error = [{ msg: 'An agent is already attending to the user.' }];
+        nsSocket.emit('livechatError', { errors: error });
+        console.log(`[x] Emit Event: livechatError - ${JSON.stringify(error)}`);
+        return;
+      }
+      nsSocket.join(roomToJoin);
 
       if (!users.some((user) => user.userId === roomToJoin) && nsRoom.platform) {
         // only set the state and send first message if user does not exist in list
@@ -109,7 +130,7 @@ namespaces.forEach((namespace) => {
             text: `You are currently connected with ${username}.`,
           },
           type: 'livechat',
-          [receiver]: roomToJoin,
+          [receiver]: nsRoom.userReference,
           abbr: process.env.ABBREVIATION,
           platform: nsRoom.platform,
           created_at: Date.now(),
@@ -130,6 +151,12 @@ namespaces.forEach((namespace) => {
       nsSocket.leave(roomToRemove);
       users = users.filter((user) => user.userId !== roomToRemove);
       const nsRoom = namespace.rooms.find((room) => room.roomTitle === roomToRemove);
+      if (!nsRoom || nsRoom.agent !== username) {
+        const error = [{ msg: 'No permission to exit the room.' }];
+        nsSocket.emit('livechatError', { errors: error });
+        console.log(`[x] Emit Event: livechatError - ${JSON.stringify(error)}`);
+        return;
+      }
       console.log(`Found room ${nsRoom}`);
       const { platform } = nsRoom;
       namespaces[0].removeRoom(roomToRemove);
@@ -166,6 +193,12 @@ namespaces.forEach((namespace) => {
     nsSocket.on('newMessageToServer', async (msg) => {
       console.log(`[x] Received Event: newMessageToServer, Payload: ${JSON.stringify(msg)}`);
       const nsRoom = namespace.rooms.find((room) => room.roomTitle === msg.roomTitle);
+      if (!nsRoom || nsRoom.agent !== msg.username) {
+        const error = [{ msg: 'No permission to send the message.' }];
+        nsSocket.emit('livechatError', { errors: error });
+        console.log(`[x] Emit Event: livechatError - ${JSON.stringify(error)}`);
+        return;
+      }
       msg.platform = nsRoom.platform;
       msg.userReference = nsRoom.userReference;
       sendMessageToClient(nsSocket, namespace, msg);
@@ -195,11 +228,9 @@ namespaces.forEach((namespace) => {
         results.isLastMessage = true;
       }
 
-      const formattedMessages = await formatDbMessage(roomTitle, messages.slice(0, limit + 1)); // remove the +1 msg
-      results.messages = formattedMessages;
-
-      console.log(results);
-      nsSocket.emit('showPreviousMessages', formattedMessages);
+      // remove the +1 msg
+      results.messages = await formatDbMessage(roomTitle, messages.slice(0, limit + 1));
+      nsSocket.emit('showPreviousMessages', results);
     });
   }));
 });

@@ -23,12 +23,15 @@ function getLocalIp() {
   return ip.address();
 }
 
+function formatIpAddress(ipToFormat) {
+  return ipToFormat ? ipToFormat.replace(/\./g, '-') : 'ip_not_found';
+}
 function getFormattedIpAddress() {
   const localIp = getLocalIp();
-  return localIp ? localIp.replace(/\./g, '-') : 'ip_not_found';
+  return formatIpAddress(localIp);
 }
 
 module.exports = {
-  getLocalIp,
+  formatIpAddress,
   getFormattedIpAddress,
 };

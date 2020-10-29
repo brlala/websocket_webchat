@@ -51,7 +51,7 @@ async function addRequestRoom(chatRequest) {
     .sort({ _id: -1 })
     .limit(botConfig.livechat.history_message_count)
     .exec();
-  insertDbMessageToRoom(userRoom, roomReference, messages);
+  await insertDbMessageToRoom(userRoom, roomReference, messages);
   console.log({ rooms: namespaces[0].rooms });
   namespaces.forEach((namespace) => {
     io.of('/wiki').emit('nsRoomLoad', namespace.rooms);
