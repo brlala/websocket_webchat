@@ -1,6 +1,7 @@
 require('dotenv').config();
 // utils
 const jwt = require('jsonwebtoken');
+const socketioAuth = require('socketio-auth');
 
 // Database
 const mongoose = require('mongoose');
@@ -35,21 +36,48 @@ const { formatMessage, formatOutgoingMessage, formatDbMessage } = require('./uti
 let users = [];
 
 // setting up authentication middleware for socket-io
-io.use(async (socket, next) => {
+// Authenticate!
+function authenticate(socket, data, callback) {
+  // get credentials sent by the client
+  const { token } = data;
   try {
-    const { token } = socket.handshake.query;
-
-    // verify token
     const payload = jwt.verify(token, process.env.SECRET);
     socket.userId = payload.id;
     socket.payload = payload;
-    next();
-    // eslint-disable-next-line no-empty
-  } catch (err) {
-    // socket.emit('authentication-error', 'The token provided is invalid.');
-    console.log(`Invalid authentication: ${socket.handshake?.query?.token}`);
+    callback(null, true);
+  } catch (error) {
+    console.log(`Invalid authentication: ${token}`);
+    // const errorArr = {
+    //   errors: [{
+    //     msg: 'The JWT provided is invalid',
+    //     code: 401,
+    //   }],
+    // };
+    // socket.emit('ws-error', errorArr);
+    callback(error);
   }
+}
+
+socketioAuth(io, {
+  authenticate,
+  timeout: 1000,
 });
+
+// io.use(async (socket, next) => {
+//   try {
+//     const { token } = socket.handshake.query;
+//
+//     // verify token
+//     const payload = jwt.verify(token, process.env.SECRET);
+//     socket.userId = payload.id;
+//     socket.payload = payload;
+//     next();
+//     // eslint-disable-next-line no-empty
+//   } catch (err) {
+//     // socket.emit('authentication-error', 'The token provided is invalid.');
+//     console.log(`Invalid authentication: ${socket.handshake?.query?.token}`);
+//   }
+// });
 
 // main namespace connection
 io.on('connection', (socket) => {

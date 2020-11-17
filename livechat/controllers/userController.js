@@ -92,7 +92,11 @@ async function register(req, res) {
     email: { $regex: new RegExp(`^${escapeRegExp(email)}$`, 'i') },
     is_active: true,
   });
-  if (userExists) throw 'User with same email already exits.';
+  if (userExists) {
+    return res.status(409).json({
+      message: 'User with same email already exits.',
+    });
+  }
 
   const defaultGroup = await LivechatUserGroup.findOne({ name: 'default' });
   const today = new Date();
@@ -146,7 +150,17 @@ async function login(req, res) {
     is_active: true,
   });
 
-  if (!user) throw 'Your account information was entered incorrectly.';
+  if (!user) {
+    return res.status(401).json({
+      message: 'Your account information is entered incorrectly.',
+    });
+  }
+
+  if (!user.password) {
+    return res.status(401).json({
+      message: 'Please verify your email before proceeding with the login.',
+    });
+  }
 
   if (user.is_locked) {
     return res.status(403).json({
@@ -154,6 +168,7 @@ async function login(req, res) {
     });
   }
 
+  console.log({ user, password });
   verifyPassword(password, user.password, async (err, correct) => {
     if (err) {
       return 1;
@@ -254,7 +269,9 @@ async function createPassword(req, res) {
 
   hashPassword(passwordTwo, async (err, hash) => {
     if (err) {
-      throw 'Password hashing error';
+      return res.status(500).json({
+        message: 'Password hashing error.',
+      });
     }
     // example hash that can be used to validate the password
     const hashString = hash.toString('hex');

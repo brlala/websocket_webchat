@@ -28,15 +28,13 @@ async function uploadProfilePicture(req, res) {
     botUser.profile_pic_url = await uploadFile(resizedProfilePicBuffer, mimetype, '', filename);
     botUser.save();
     res.json({
-      message: `Profile picture changed successfully!`,
+      message: 'Profile picture changed successfully!',
     });
   } catch {
-    return res.status(400)
-      .json({
-        errors: [{ msg: 'Upload of picture failed' }],
-      });
+    return res.status(400).json({
+      errors: [{ msg: 'Upload of picture failed' }],
+    });
   }
-
 }
 
 module.exports = {
