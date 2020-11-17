@@ -37,31 +37,48 @@ let users = [];
 
 // setting up authentication middleware for socket-io
 // Authenticate!
-function authenticate(socket, data, callback) {
-  // get credentials sent by the client
-  const { token } = data;
-  try {
-    const payload = jwt.verify(token, process.env.SECRET);
-    socket.userId = payload.id;
-    socket.payload = payload;
-    callback(null, true);
-  } catch (error) {
-    console.log(`Invalid authentication: ${token}`);
-    // const errorArr = {
-    //   errors: [{
-    //     msg: 'The JWT provided is invalid',
-    //     code: 401,
-    //   }],
-    // };
-    // socket.emit('ws-error', errorArr);
-    callback(error);
-  }
-}
-
-socketioAuth(io, {
-  authenticate,
-  timeout: 1000,
-});
+// function authenticate(socket, data, callback) {
+//   // get credentials sent by the client
+//   const { token } = data;
+//   try {
+//     const payload = jwt.verify(token, process.env.SECRET);
+//     socket.userId = payload.id;
+//     socket.client = payload;
+//     callback(null, true);
+//   } catch (error) {
+//     console.log(`Invalid authentication: ${token}`);
+//     // const errorArr = {
+//     //   errors: [{
+//     //     msg: 'The JWT provided is invalid',
+//     //     code: 401,
+//     //   }],
+//     // };
+//     // socket.emit('ws-error', errorArr);
+//     callback(error);
+//   }
+// }
+//
+// function postAuthenticate(socket, data, callback) {
+//   // get credentials sent by the client
+//   const { token } = data;
+//   const payload = jwt.verify(token, process.env.SECRET);
+//   socket.userId = payload.id;
+//   socket.client = payload;
+//
+//   console.log(`Connected: ${socket.client.email}`);
+//
+// }
+//
+// function disconnect(socket) {
+//   console.log(`${socket.id} disconnected`);
+// }
+//
+// socketioAuth(io, {
+//   authenticate,
+//   postAuthenticate,
+//   disconnect,
+//   timeout: 1000,
+// });
 
 // io.use(async (socket, next) => {
 //   try {
@@ -81,20 +98,56 @@ socketioAuth(io, {
 
 // main namespace connection
 io.on('connection', (socket) => {
-  console.log(`Connected: ${socket.payload.email}`);
-  // console.log(socket.handshake);
-  // build an array to send back img and endpoint of each NS
-  const nsData = namespaces.map((ns) => ({
-    img: ns.image,
-    endpoint: ns.endpoint,
-  }));
-  // console.log(nsData);
-  // send ns data back to client, use socket NOT io because we just want to send it to this client
-  socket.emit('nsList', nsData);
+  console.log(`Connected: ${socket.id}`);
+  socket.auth = false;
+  socket.on('authentication', (data) => {
+    console.log('Authenticating...');
+    const { token } = data;
+    // check the auth data sent by the client
+    try {
+      const payload = jwt.verify(token, process.env.SECRET);
+      socket.userId = payload.id;
+      socket.payload = payload;
+      console.log(`Authenticated socket ${payload.email}`);
+      socket.auth = true;
+      // build an array to send back img and endpoint of each NS
+      const nsData = namespaces.map((ns) => ({
+        img: ns.image,
+        endpoint: ns.endpoint,
+      }));
+      // send ns data back to client, use socket NOT io because we just want to send it to this client
+      socket.emit('nsList', nsData);
+    } catch (e) {
+      const errArr = {
+        errors: [{
+          msg: 'The JWT provided is invalid',
+          code: 401,
+        }],
+      };
+      socket.emit('unauthorized', errArr);
+      console.log('Authentication failed...');
+      socket.disconnect(true);
+    }
+  });
+  setTimeout(() => {
+    // If the socket didn't authenticate, disconnect it
+    if (!socket.auth) {
+      const errArr = {
+        errors: [{
+          msg: 'No authorized event received',
+          code: 401,
+        }],
+      };
+      socket.emit('unauthorized', errArr);
+      console.log('Disconnecting socket due to timeout');
+      socket.disconnect(true);
+    }
+  }, 3000);
   socket.on('disconnect', () => {
-    console.log(`Disconnected: ${socket.payload.email}`);
+    console.log(`Disconnected: ${socket.id}`);
   });
 });
+
 function resetChatState() {
   // Used when user are still connected and the server restarts
   Session.updateMany({ chat_state: { $ne: 'bot' } }, { chat_state: 'bot' }).then((value) => {

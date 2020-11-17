@@ -168,7 +168,6 @@ async function login(req, res) {
     });
   }
 
-  console.log({ user, password });
   verifyPassword(password, user.password, async (err, correct) => {
     if (err) {
       return 1;
