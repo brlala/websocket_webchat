@@ -165,7 +165,7 @@ function resetChatState() {
 resetChatState();
 namespaces.forEach((namespace) => {
   io.of(namespace.endpoint).on('connection', (async (nsSocket) => {
-    console.log(`Connected ${namespace.endpoint}: ${nsSocket.id}`);
+    console.log(`Connected: ${nsSocket.id}`);
     nsSocket.auth = false;
     nsSocket.on('authentication', (data) => {
       console.log('Authenticating...');
@@ -213,7 +213,7 @@ namespaces.forEach((namespace) => {
       }
     }, 3000);
     nsSocket.on('disconnect', () => {
-      console.log(`Disconnected ${namespace.endpoint}: ${nsSocket.id}`);
+      console.log(`Disconnected: ${nsSocket.id}`);
     });
 
     // console.log(`${nsSocket.id} has join ${namespace.endpoint}`);
