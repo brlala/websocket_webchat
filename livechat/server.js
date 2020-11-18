@@ -165,25 +165,25 @@ function resetChatState() {
 resetChatState();
 namespaces.forEach((namespace) => {
   io.of(namespace.endpoint).on('connection', (async (nsSocket) => {
-    console.log(`Connected ${namespace.endpoint}: ${socket.id}`);
-    socket.auth = false;
-    socket.on('authentication', (data) => {
+    console.log(`Connected ${namespace.endpoint}: ${nsSocket.id}`);
+    nsSocket.auth = false;
+    nsSocket.on('authentication', (data) => {
       console.log('Authenticating...');
       const { token } = data;
       // check the auth data sent by the client
       try {
         const payload = jwt.verify(token, process.env.SECRET);
-        socket.userId = payload.id;
-        socket.payload = payload;
+        nsSocket.userId = payload.id;
+        nsSocket.payload = payload;
         console.log(`Authenticated socket ${payload.email}`);
-        socket.auth = true;
+        nsSocket.auth = true;
         // build an array to send back img and endpoint of each NS
         const nsData = namespaces.map((ns) => ({
           img: ns.image,
           endpoint: ns.endpoint,
         }));
         // send ns data back to client, use socket NOT io because we just want to send it to this client
-        socket.emit('nsList', nsData);
+        nsSocket.emit('nsList', nsData);
         // a socket has  connected to one of our chatgroup namespaces, send that ns group info back
         nsSocket.emit('nsRoomLoad', namespace.rooms);
       } catch (e) {
@@ -193,27 +193,27 @@ namespaces.forEach((namespace) => {
             code: 401,
           }],
         };
-        socket.emit('unauthorized', errArr);
+        nsSocket.emit('unauthorized', errArr);
         console.log('Authentication failed...');
-        socket.disconnect(true);
+        nsSocket.disconnect(true);
       }
     });
     setTimeout(() => {
       // If the socket didn't authenticate, disconnect it
-      if (!socket.auth) {
+      if (!nsSocket.auth) {
         const errArr = {
           errors: [{
             msg: 'No authorized event received',
             code: 401,
           }],
         };
-        socket.emit('unauthorized', errArr);
+        nsSocket.emit('unauthorized', errArr);
         console.log('Disconnecting socket due to timeout');
-        socket.disconnect(true);
+        nsSocket.disconnect(true);
       }
     }, 3000);
-    socket.on('disconnect', () => {
-      console.log(`Disconnected ${namespace.endpoint}: ${socket.id}`);
+    nsSocket.on('disconnect', () => {
+      console.log(`Disconnected ${namespace.endpoint}: ${nsSocket.id}`);
     });
 
     // console.log(`${nsSocket.id} has join ${namespace.endpoint}`);
