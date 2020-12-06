@@ -2,11 +2,21 @@ let socketio = require('socket.io');
 
 let io = null;
 
-module.exports.getIO = function () {
+function getIO() {
   return io;
-};
+}
 
-exports.initialize = function (server) {
-  io = socketio(server);
+function initialize(server) {
+  io = socketio(server, {
+    cors: {
+      origin: process.env.ORIGIN,
+      methods: ['GET', 'POST'],
+    },
+  });
   return io;
+}
+
+module.exports = {
+  getIO,
+  initialize,
 };
