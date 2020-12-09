@@ -239,6 +239,17 @@ namespaces.forEach((namespace) => {
     nsSocket.on('requestTransferChat', async (payload) => {
       const { roomId, agentToTransfer, problem } = payload; // agentToTransfer is email identifier
       // const nsRoom = namespace.rooms.find((room) => room.roomTitle === roomId);
+      // expiry timer for request
+      nsSocket.transferChat = true;
+      setTimeout(() => {
+        // If agent B did not reply to request, cancel the request.
+        if (nsSocket.transferChat) {
+          nsSocket.transferChat = false;
+          nsSocket.emit('transferStatus', { status: `No response to chat transfer request for ${agentToTransfer} for room ${roomId}.` });
+          console.log(`Agent Requesting Transfer: ${nsSocket.payload.email}, Agent To Transfer: ${agentToTransfer}, Room: ${roomId}, Status: Ignored`);
+        }
+      }, 300000);
+
       console.log(`[x] Received Event: requestTransferChat, Payload: ${JSON.stringify(payload)}`);
       const clients = await io.of(namespace.endpoint).allSockets();
       let agentSockets = [];
@@ -255,9 +266,10 @@ namespaces.forEach((namespace) => {
         // nsSocket.broadcast.to()
       });
     });
-
     nsSocket.on('transferChat', async (payload) => {
       console.log(`[x] Received Event: transferChat, Payload: ${JSON.stringify(payload)}`);
+      // remove timer associated
+      clearTimeout(transferTimer);
       const { transfer, roomId, detail } = payload;
       // getting all sockets of prevAgent and leave the room, then join with newAgent
       const nsRoom = namespace.rooms.find((room) => room.roomTitle === roomId);
@@ -270,6 +282,9 @@ namespaces.forEach((namespace) => {
           const socket = io.of(namespace.endpoint).sockets.get(client);
           if (socket?.payload?.email === prevAgent) {
             socket.leave(roomId);
+            socket.transferChat = false;
+            socket.emit('transferStatus', { status: `Transfer request for ${roomId} accepted by ${nsSocket.payload.email}`, detail });
+            console.log(`Agent Requesting Transfer: ${nsSocket.payload.email}, Agent To Transfer: ${agentToTransfer}, Room: ${roomId}, Status: Accepted, Detail: ${detail}`);
           }
         });
         nsRoom.agent = nsSocket.payload.email;
@@ -280,7 +295,9 @@ namespaces.forEach((namespace) => {
         clients.forEach((client) => {
           const socket = io.of(namespace.endpoint).sockets.get(client);
           if (socket?.payload?.email === prevAgent) {
-            socket.emit('transferStatus', { message: `Transfer request for ${roomId} rejected by ${nsSocket.payload.email}`, detail });
+            socket.transferChat = false;
+            socket.emit('transferStatus', { status: `Transfer request for ${roomId} rejected by ${nsSocket.payload.email}`, detail });
+            console.log(`Agent Requesting Transfer: ${nsSocket.payload.email}, Agent To Transfer: ${agentToTransfer}, Room: ${roomId}, Status: Rejected, Detail: ${detail}`);
           }
         });
       }
