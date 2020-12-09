@@ -31,6 +31,7 @@ const { rabbitMq } = require('./rabbitmq/initialize');
 const namespaces = require('./data/namespaces');
 const User = require('./classes/User');
 const { formatMessage, formatOutgoingMessage, formatDbMessage } = require('./utils');
+const { sendLineBreakMessage } = require('./utilsRabbitMq');
 
 // variables to record user info
 let users = [];
@@ -165,7 +166,7 @@ function resetChatState() {
 resetChatState();
 namespaces.forEach((namespace) => {
   io.of(namespace.endpoint).on('connection', (async (nsSocket) => {
-    console.log(`Connected: ${nsSocket.id}`);
+    console.log(`Connected ${namespace.endpoint}: ${nsSocket.id}`);
     nsSocket.auth = false;
     nsSocket.on('authentication', (data) => {
       console.log('Authenticating...');
@@ -213,7 +214,77 @@ namespaces.forEach((namespace) => {
       }
     }, 3000);
     nsSocket.on('disconnect', () => {
-      console.log(`Disconnected: ${nsSocket.id}`);
+      console.log(`Disconnected ${namespace.endpoint}: ${nsSocket.id}`);
+    });
+
+    nsSocket.on('getAgentsOnlineList', async () => {
+      console.log('[x] Received Event: getAgentsOnlineList');
+      const clients = await io.of(namespace.endpoint).allSockets();
+      let onlineUsers = new Set();
+      clients.forEach((client) => {
+        const socket = io.of(namespace.endpoint).sockets.get(client);
+        if (socket.auth) {
+          onlineUsers.add(socket.payload.email);
+        }
+      });
+      nsSocket.emit('agentsOnline', [...onlineUsers]);
+    });
+    // nsSocket.on('joinTest', async () => {
+    //   console.log(`${nsSocket.payload.email} joined 'New Articles'`);
+    //   nsSocket.join('New Articles');
+    //   console.log('emit message to room');
+    //   io.of(namespace.endpoint).to('New Articles').emit('message', { message: 'message emitted' });
+    // });
+
+    nsSocket.on('requestTransferChat', async (payload) => {
+      const { roomId, agentToTransfer, problem } = payload; // agentToTransfer is email identifier
+      // const nsRoom = namespace.rooms.find((room) => room.roomTitle === roomId);
+      console.log(`[x] Received Event: requestTransferChat, Payload: ${JSON.stringify(payload)}`);
+      const clients = await io.of(namespace.endpoint).allSockets();
+      let agentSockets = [];
+      clients.forEach((client) => {
+        const socket = io.of(namespace.endpoint).sockets.get(client);
+        if (socket?.payload?.email === agentToTransfer) {
+          console.log(socket.payload.email);
+          agentSockets.push(socket);
+        }
+      });
+      agentSockets.forEach((socket) => {
+        const payloadToSend = { agentRequestingTransfer: nsSocket.payload.email, problem, roomId };
+        socket.emit('transferRequest', payloadToSend);
+        // nsSocket.broadcast.to()
+      });
+    });
+
+    nsSocket.on('transferChat', async (payload) => {
+      console.log(`[x] Received Event: transferChat, Payload: ${JSON.stringify(payload)}`);
+      const { transfer, roomId, detail } = payload;
+      // getting all sockets of prevAgent and leave the room, then join with newAgent
+      const nsRoom = namespace.rooms.find((room) => room.roomTitle === roomId);
+      const prevAgent = nsRoom.agent;
+      const clients = await io.of(namespace.endpoint).allSockets();
+
+      if (transfer) {
+        console.log(`Transferring ${roomId} chat from ${prevAgent} to ${nsSocket.payload.email}`);
+        clients.forEach((client) => {
+          const socket = io.of(namespace.endpoint).sockets.get(client);
+          if (socket?.payload?.email === prevAgent) {
+            socket.leave(roomId);
+          }
+        });
+        nsRoom.agent = nsSocket.payload.email;
+        nsSocket.join(roomId);
+        await sendLineBreakMessage(nsRoom, `You are currently connected with ${nsRoom.agent}.`);
+        // await sendJoinMessage(nsRoom);
+      } else {
+        clients.forEach((client) => {
+          const socket = io.of(namespace.endpoint).sockets.get(client);
+          if (socket?.payload?.email === prevAgent) {
+            socket.emit('transferStatus', { message: `Transfer request for ${roomId} rejected by ${nsSocket.payload.email}`, detail });
+          }
+        });
+      }
+      // io.of(namespace.endpoint).to('New Articles').emit('message', { message: 'message emitted' });
     });
 
     // console.log(`${nsSocket.id} has join ${namespace.endpoint}`);
@@ -249,21 +320,8 @@ namespaces.forEach((namespace) => {
         users.push(user);
         console.log('Adding User');
         console.log(users);
-        const receiver = nsRoom.platform === 'widget' ? 'session_id' : 'receiver_platform_id';
         nsRoom.agent = username;
-        const data = {
-          data: {
-            subtype: 'connect',
-            text: `You are currently connected with ${username}.`,
-          },
-          type: 'livechat',
-          [receiver]: nsRoom.userReference,
-          abbr: process.env.ABBREVIATION,
-          platform: nsRoom.platform,
-          created_at: Date.now(),
-          created_by: username,
-        };
-        await rabbitMq.publishMessage(data);
+        await sendLineBreakMessage(nsRoom, `You are currently connected with ${nsRoom.agent}.`);
       }
       console.log({ history: namespace.rooms });
       nsSocket.emit('historyCatchUp', nsRoom.history);

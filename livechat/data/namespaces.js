@@ -10,7 +10,7 @@ const wikiNs = new Namespace(0, 'Wiki', 'https://upload.wikimedia.org/wikipedia/
 
 // Make the main room and add it to rooms. it will ALWAYS be 0
 Room.count = 0;
-wikiNs.addRoom(new Room(0, 'New Articles', 'Wiki'));
+wikiNs.addRoom(new Room(0, 'New Articles', '5f102a919e9dab93d2bb5bc2', 'Wiki', false, 'widget'));
 wikiNs.addRoom(new Room(1, 'Editors', 'Wiki'));
 wikiNs.addRoom(new Room(2, 'Other', 'Wiki'));
 Room.count = 0;

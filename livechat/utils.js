@@ -1,4 +1,3 @@
-const util = require('util');
 const { getBotConfig } = require('./globals');
 const { uploadFile } = require('./uploader');
 

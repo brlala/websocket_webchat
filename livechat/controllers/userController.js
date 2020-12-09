@@ -202,7 +202,7 @@ async function login(req, res) {
       });
 
       res.json({
-        message: 'User logged in successfully!',
+        message: `User ${user.email} logged in successfully!`,
         token,
       });
     } else {
