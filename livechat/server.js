@@ -266,10 +266,9 @@ namespaces.forEach((namespace) => {
         // nsSocket.broadcast.to()
       });
     });
+
     nsSocket.on('transferChat', async (payload) => {
       console.log(`[x] Received Event: transferChat, Payload: ${JSON.stringify(payload)}`);
-      // remove timer associated
-      clearTimeout(transferTimer);
       const { transfer, roomId, detail } = payload;
       // getting all sockets of prevAgent and leave the room, then join with newAgent
       const nsRoom = namespace.rooms.find((room) => room.roomTitle === roomId);
